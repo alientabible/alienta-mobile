@@ -3,15 +3,21 @@ node_modules/
 
 # Expo and React Native
 .expo/
+expo-env.d.ts
 dist/
 web-build/
 android/
 ios/
+.kotlin/
+.metro-health-check*
+*.orig.*
+*.tsbuildinfo
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.pem
 
 # Environment and secrets
 .env
@@ -33,3 +39,4 @@ Thumbs.db
 
 # Temporary scaffolding
 .bootstrap-expo/
+expo-bootstrap/
