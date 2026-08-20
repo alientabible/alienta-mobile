@@ -17,7 +17,7 @@
       "package": "com.alientabible.alienta",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#F8F7F2",
+        "backgroundColor": "#F4EEE4",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -33,11 +33,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F8F7F2",
+          "backgroundColor": "#F4EEE4",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

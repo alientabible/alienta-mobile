@@ -1,0 +1,52 @@
+{
+  "tabs": {
+    "home": "Inicio",
+    "bible": "Biblia",
+    "studies": "Planes",
+    "communities": "Grupos",
+    "profile": "Perfil"
+  },
+  "home": {
+    "brand": "Alienta",
+    "eyebrow": "Un momento para ti",
+    "title": "¿Cómo te sientes hoy?",
+    "subtitle": "Puedes elegir una opción o contarnos con tus palabras.",
+    "inputLabel": "Quiero contarte algo…",
+    "inputPlaceholder": "Escribe aquí lo que estás viviendo",
+    "inputAccessibility": "Describe cómo te sientes hoy",
+    "continue": "Encontrar aliento",
+    "continueHint": "Continuará al acompañamiento bíblico",
+    "privacy": "Tu respuesta es privada y no se guardará en este prototipo.",
+    "thanksTitle": "Gracias por compartirlo",
+    "thanksMessage": "En el siguiente hito conectaremos esta respuesta con versículos verificados y una reflexión segura.",
+    "suggestions": {
+      "peace": "Necesito paz",
+      "grateful": "Agradecido",
+      "lonely": "Me siento solo",
+      "hopeful": "Tengo esperanza"
+    }
+  },
+  "features": {
+    "comingSoon": "Próximamente",
+    "bible": {
+      "title": "Tu Biblia, incluso sin conexión",
+      "description": "Aquí podrás leer, buscar, ajustar el tamaño del texto y guardar tus versículos favoritos.",
+      "items": ["Lectura de alto contraste", "Búsqueda por palabra o referencia", "Progreso y favoritos opcionales"]
+    },
+    "studies": {
+      "title": "Estudios sencillos para cada día",
+      "description": "Planes editoriales breves te ayudarán a comprender y aplicar la Biblia paso a paso.",
+      "items": ["Planes guiados de siete días", "Preguntas de reflexión", "Progreso privado"]
+    },
+    "communities": {
+      "title": "Comunidades cuidadas",
+      "description": "El piloto será privado y tendrá líderes verificados, reglas visibles y herramientas de seguridad.",
+      "items": ["Acceso por invitación", "Publicaciones y comentarios", "Reportar y bloquear"]
+    },
+    "profile": {
+      "title": "Alienta funciona sin una cuenta",
+      "description": "Más adelante podrás iniciar sesión para sincronizar preferencias, favoritos y progreso.",
+      "items": ["Cuenta opcional", "Controles de privacidad", "Idioma y accesibilidad"]
+    }
+  }
+}
