@@ -1,17 +1,15 @@
 import { Tabs } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useTranslation } from 'react-i18next';
 import type { ColorValue } from 'react-native';
 
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { fonts } from '@/theme/tokens';
 
 type TabIconProps = {
   color: ColorValue;
   focused: boolean;
-  name: {
-    android: 'home' | 'menu_book' | 'school' | 'groups' | 'person';
-    ios: 'house.fill' | 'book.fill' | 'graduationcap.fill' | 'person.3.fill' | 'person.crop.circle.fill';
-  };
+  name: SymbolViewProps['name'];
 };
 
 function TabIcon({ color, focused, name }: TabIconProps) {
@@ -33,18 +31,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveTintColor: theme.colors.accent,
+        tabBarAllowFontScaling: false,
         tabBarHideOnKeyboard: true,
         tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarLabelStyle: {
+          fontFamily: fonts.sansSemibold,
           fontSize: 12,
-          fontWeight: '700',
         },
         tabBarStyle: {
-          minHeight: 68,
+          minHeight: 72,
           borderTopColor: theme.colors.outline,
           backgroundColor: theme.colors.surface,
-          paddingTop: 7,
+          paddingBottom: 5,
+          paddingTop: 8,
         },
       }}
     >
@@ -53,7 +53,7 @@ export default function TabLayout() {
         options={{
           tabBarAccessibilityLabel: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon color={color} focused={focused} name={{ android: 'home', ios: 'house.fill' }} />
+            <TabIcon color={color} focused={focused} name={{ android: 'home', ios: 'house' }} />
           ),
           title: t('tabs.home'),
         }}
@@ -63,7 +63,7 @@ export default function TabLayout() {
         options={{
           tabBarAccessibilityLabel: t('tabs.bible'),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon color={color} focused={focused} name={{ android: 'menu_book', ios: 'book.fill' }} />
+            <TabIcon color={color} focused={focused} name={{ android: 'menu_book', ios: 'book' }} />
           ),
           title: t('tabs.bible'),
         }}
@@ -73,7 +73,7 @@ export default function TabLayout() {
         options={{
           tabBarAccessibilityLabel: t('tabs.studies'),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon color={color} focused={focused} name={{ android: 'school', ios: 'graduationcap.fill' }} />
+            <TabIcon color={color} focused={focused} name={{ android: 'school', ios: 'graduationcap' }} />
           ),
           title: t('tabs.studies'),
         }}
@@ -83,7 +83,7 @@ export default function TabLayout() {
         options={{
           tabBarAccessibilityLabel: t('tabs.communities'),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon color={color} focused={focused} name={{ android: 'groups', ios: 'person.3.fill' }} />
+            <TabIcon color={color} focused={focused} name={{ android: 'groups', ios: 'person.3' }} />
           ),
           title: t('tabs.communities'),
         }}
@@ -93,7 +93,7 @@ export default function TabLayout() {
         options={{
           tabBarAccessibilityLabel: t('tabs.profile'),
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon color={color} focused={focused} name={{ android: 'person', ios: 'person.crop.circle.fill' }} />
+            <TabIcon color={color} focused={focused} name={{ android: 'person', ios: 'person.crop.circle' }} />
           ),
           title: t('tabs.profile'),
         }}

@@ -6,6 +6,7 @@ export type AppColors = {
   primaryPressed: string;
   primarySoft: string;
   accent: string;
+  accentSoft: string;
   text: string;
   textMuted: string;
   outline: string;
@@ -14,33 +15,35 @@ export type AppColors = {
 };
 
 export const lightColors: AppColors = {
-  background: '#F8F7F2',
-  surface: '#FFFFFF',
+  background: '#F4EEE4',
+  surface: '#FBF8F2',
   surfaceElevated: '#FFFFFF',
-  primary: '#185A45',
-  primaryPressed: '#0F4635',
-  primarySoft: '#E8F2ED',
-  accent: '#B27A18',
-  text: '#17241F',
-  textMuted: '#65736B',
-  outline: '#DCE4DF',
-  onPrimary: '#FFFFFF',
-  success: '#237A57',
+  primary: '#173C33',
+  primaryPressed: '#0E2B25',
+  primarySoft: '#E5ECE7',
+  accent: '#865D22',
+  accentSoft: '#F0E2C9',
+  text: '#1F2420',
+  textMuted: '#5F675F',
+  outline: '#D8CFC1',
+  onPrimary: '#FBF8F2',
+  success: '#2D6B52',
 };
 
 export const darkColors: AppColors = {
-  background: '#101713',
-  surface: '#18211D',
-  surfaceElevated: '#202B26',
-  primary: '#75C9A7',
-  primaryPressed: '#9EDDBF',
-  primarySoft: '#203D32',
-  accent: '#E2B861',
-  text: '#F1F5F2',
-  textMuted: '#B1BDB6',
-  outline: '#35463E',
-  onPrimary: '#0E2B20',
-  success: '#75C9A7',
+  background: '#0E1412',
+  surface: '#161D1A',
+  surfaceElevated: '#202823',
+  primary: '#92C1AC',
+  primaryPressed: '#B1D4C4',
+  primarySoft: '#22372F',
+  accent: '#E0B86B',
+  accentSoft: '#3A3021',
+  text: '#F4EEE4',
+  textMuted: '#C0B8AC',
+  outline: '#3B443F',
+  onPrimary: '#10231C',
+  success: '#92C1AC',
 };
 
 export const spacing = {
@@ -54,18 +57,27 @@ export const spacing = {
 } as const;
 
 export const radii = {
-  sm: 10,
-  md: 16,
+  sm: 12,
+  md: 18,
   lg: 24,
+  xl: 28,
   pill: 999,
+} as const;
+
+export const fonts = {
+  sansRegular: 'Manrope_400Regular',
+  sansSemibold: 'Manrope_600SemiBold',
+  sansBold: 'Manrope_700Bold',
+  serifMedium: 'CormorantGaramond_500Medium',
+  serifSemibold: 'CormorantGaramond_600SemiBold',
 } as const;
 
 export const typography = {
   body: 17,
   bodyLineHeight: 26,
   caption: 14,
-  heading: 24,
-  hero: 38,
+  heading: 30,
+  hero: 46,
 } as const;
 
 export const accessibility = {
@@ -78,6 +90,7 @@ export type AppTheme = {
   isDark: boolean;
   spacing: typeof spacing;
   radii: typeof radii;
+  fonts: typeof fonts;
   typography: typeof typography;
   accessibility: typeof accessibility;
 };
@@ -89,6 +102,7 @@ export function createAppTheme(colorScheme: 'light' | 'dark'): AppTheme {
     isDark: colorScheme === 'dark',
     spacing,
     radii,
+    fonts,
     typography,
     accessibility,
   };
