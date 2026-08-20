@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,21 +14,51 @@ import { useTranslation } from 'react-i18next';
 
 import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
-import { FeelingChip } from '@/components/feeling-chip';
+import { BrandLockup } from '@/components/BrandLockup';
+import { FeelingCard } from '@/components/FeelingCard';
 import { useAppTheme } from '@/theme/ThemeProvider';
-import type { AppTheme } from '@/theme/tokens';
+import { fonts, type AppTheme } from '@/theme/tokens';
+
+type FeelingOption = {
+  id: 'peace' | 'grateful' | 'lonely' | 'hopeful';
+  icon: {
+    android: 'air' | 'favorite_border' | 'person_outline' | 'wb_sunny';
+    ios: 'wind' | 'heart' | 'person' | 'sun.max';
+  };
+  label: string;
+};
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const { fontScale, width } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [feeling, setFeeling] = useState('');
-  const canContinue = feeling.trim().length > 0;
-  const suggestedFeelings = [
-    t('home.suggestions.peace'),
-    t('home.suggestions.grateful'),
-    t('home.suggestions.lonely'),
-    t('home.suggestions.hopeful'),
+  const [selectedFeeling, setSelectedFeeling] = useState<FeelingOption['id'] | null>(null);
+  const [note, setNote] = useState('');
+  const useSingleColumn = width < 360 || fontScale > 1.35;
+  const canContinue = selectedFeeling !== null || note.trim().length > 0;
+
+  const feelings: FeelingOption[] = [
+    {
+      id: 'peace',
+      icon: { android: 'air', ios: 'wind' },
+      label: t('home.suggestions.peace'),
+    },
+    {
+      id: 'grateful',
+      icon: { android: 'favorite_border', ios: 'heart' },
+      label: t('home.suggestions.grateful'),
+    },
+    {
+      id: 'lonely',
+      icon: { android: 'person_outline', ios: 'person' },
+      label: t('home.suggestions.lonely'),
+    },
+    {
+      id: 'hopeful',
+      icon: { android: 'wb_sunny', ios: 'sun.max' },
+      label: t('home.suggestions.hopeful'),
+    },
   ];
 
   const handleContinue = () => {
@@ -46,19 +77,11 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandRow}>
-            <View accessibilityElementsHidden style={styles.brandMark}>
-              <AppText color="onPrimary" style={styles.brandLetter}>
-                A
-              </AppText>
-            </View>
-            <AppText accessibilityRole="header" style={styles.brandName}>
-              {t('home.brand')}
-            </AppText>
-          </View>
+          <BrandLockup />
 
           <View style={styles.hero}>
-            <AppText color="primary" variant="eyebrow">
+            <View style={[styles.eyebrowLine, { backgroundColor: theme.colors.accent }]} />
+            <AppText color="accent" style={styles.eyebrow} variant="eyebrow">
               {t('home.eyebrow')}
             </AppText>
             <AppText accessibilityRole="header" style={styles.title} variant="hero">
@@ -69,51 +92,66 @@ export default function HomeScreen() {
             </AppText>
           </View>
 
-          <View style={styles.card}>
+          <View accessibilityRole="radiogroup" style={styles.feelingGrid}>
+            {feelings.map((item) => (
+              <FeelingCard
+                icon={item.icon}
+                key={item.id}
+                label={item.label}
+                onPress={() =>
+                  setSelectedFeeling((current) => (current === item.id ? null : item.id))
+                }
+                selected={selectedFeeling === item.id}
+                style={useSingleColumn ? styles.fullCard : styles.halfCard}
+              />
+            ))}
+          </View>
+
+          <View
+            style={[
+              styles.inputCard,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outline,
+                shadowColor: theme.colors.text,
+              },
+            ]}
+          >
             <AppText style={styles.inputLabel}>{t('home.inputLabel')}</AppText>
             <TextInput
               accessibilityLabel={t('home.inputAccessibility')}
               maxLength={240}
               multiline
-              onChangeText={setFeeling}
+              onChangeText={setNote}
               onSubmitEditing={handleContinue}
               placeholder={t('home.inputPlaceholder')}
               placeholderTextColor={theme.colors.textMuted}
-              selectionColor={theme.colors.primary}
-              style={styles.input}
+              selectionColor={theme.colors.accent}
+              style={[styles.input, { color: theme.colors.text }]}
               textAlignVertical="top"
-              value={feeling}
+              value={note}
             />
-
-            <View style={styles.buttonSpacing}>
-              <AppButton
-                accessibilityHint={t('home.continueHint')}
-                disabled={!canContinue}
-                label={t('home.continue')}
-                onPress={handleContinue}
-              />
-            </View>
+            <View style={[styles.inputRule, { backgroundColor: theme.colors.outline }]} />
+            <AppText color="textMuted" style={styles.characterCount} variant="caption">
+              {note.length}/240
+            </AppText>
           </View>
 
-          <View style={styles.suggestions}>
-            <AppText style={styles.sectionTitle}>{t('home.suggestionsTitle')}</AppText>
-            <View style={styles.chipGroup}>
-              {suggestedFeelings.map((item) => (
-                <FeelingChip
-                  key={item}
-                  label={item}
-                  onPress={() => setFeeling(item)}
-                  selected={feeling === item}
-                />
-              ))}
-            </View>
+          <View style={styles.buttonSpacing}>
+            <AppButton
+              accessibilityHint={t('home.continueHint')}
+              disabled={!canContinue}
+              icon={{ android: 'arrow_forward', ios: 'arrow.right' }}
+              label={t('home.continue')}
+              onPress={handleContinue}
+            />
           </View>
 
           <View style={styles.privacyNote}>
-            <AppText color="primary" style={styles.privacySymbol}>
-              ✓
+            <View style={[styles.privacyDot, { backgroundColor: theme.colors.accent }]} />
+            <AppText color="textMuted" style={styles.privacyText} variant="caption">
+              {t('home.privacy')}
             </AppText>
-            <AppText style={styles.privacyText}>{t('home.privacy')}</AppText>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -131,97 +169,104 @@ function createStyles(theme: AppTheme) {
       flex: 1,
     },
     content: {
-      paddingHorizontal: 24,
-      paddingTop: 18,
-      paddingBottom: 32,
-    },
-    brandRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
-    brandMark: {
-      width: 38,
-      height: 38,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 19,
-      backgroundColor: theme.colors.primary,
-    },
-    brandLetter: {
-      fontSize: 21,
-      fontWeight: '900',
-    },
-    brandName: {
-      fontSize: 21,
-      fontWeight: '800',
-      letterSpacing: 0.2,
+      paddingBottom: 28,
+      paddingHorizontal: 22,
+      paddingTop: 14,
     },
     hero: {
-      marginTop: 48,
+      alignItems: 'center',
+      marginTop: 24,
+    },
+    eyebrowLine: {
+      borderRadius: 2,
+      height: 2,
+      marginBottom: 14,
+      width: 34,
+    },
+    eyebrow: {
+      fontSize: 12,
+      textAlign: 'center',
     },
     title: {
-      marginTop: 10,
+      color: theme.colors.primary,
+      marginTop: 9,
+      maxWidth: 340,
+      textAlign: 'center',
     },
     subtitle: {
-      marginTop: 14,
+      fontSize: 16,
+      lineHeight: 24,
+      marginTop: 9,
+      maxWidth: 345,
+      textAlign: 'center',
     },
-    card: {
-      marginTop: 30,
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      borderRadius: 24,
-      backgroundColor: theme.colors.surface,
-      padding: 20,
-    },
-    inputLabel: {
-      fontWeight: '700',
-    },
-    input: {
-      minHeight: 112,
-      marginTop: 12,
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      borderRadius: 16,
-      backgroundColor: theme.colors.background,
-      color: theme.colors.text,
-      fontSize: 17,
-      lineHeight: 25,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-    },
-    buttonSpacing: {
-      marginTop: 16,
-    },
-    suggestions: {
-      marginTop: 30,
-    },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-    },
-    chipGroup: {
-      marginTop: 14,
+    feelingGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 10,
+      gap: 12,
+      marginTop: 22,
+    },
+    halfCard: {
+      flexBasis: '47%',
+      flexGrow: 1,
+    },
+    fullCard: {
+      flexBasis: '100%',
+    },
+    inputCard: {
+      borderRadius: 24,
+      borderWidth: 1,
+      elevation: 1,
+      marginTop: 14,
+      minHeight: 132,
+      paddingHorizontal: 18,
+      paddingTop: 17,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.05,
+      shadowRadius: 16,
+    },
+    inputLabel: {
+      fontFamily: fonts.sansSemibold,
+      fontSize: 15,
+    },
+    input: {
+      flex: 1,
+      fontFamily: fonts.sansRegular,
+      fontSize: 16,
+      lineHeight: 24,
+      minHeight: 70,
+      paddingHorizontal: 0,
+      paddingTop: 8,
+    },
+    inputRule: {
+      height: StyleSheet.hairlineWidth,
+    },
+    characterCount: {
+      alignSelf: 'flex-end',
+      fontSize: 12,
+      paddingBottom: 9,
+      paddingTop: 5,
+    },
+    buttonSpacing: {
+      marginTop: 14,
     },
     privacyNote: {
-      marginTop: 28,
+      alignItems: 'center',
+      alignSelf: 'center',
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 10,
-      borderRadius: 16,
-      backgroundColor: theme.colors.primarySoft,
-      padding: 16,
+      gap: 9,
+      marginTop: 14,
+      maxWidth: 320,
     },
-    privacySymbol: {
-      fontWeight: '900',
+    privacyDot: {
+      borderRadius: 3,
+      height: 6,
+      width: 6,
     },
     privacyText: {
       flex: 1,
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: 12,
+      lineHeight: 18,
     },
   });
 }

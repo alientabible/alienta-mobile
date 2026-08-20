@@ -8,21 +8,20 @@
   },
   "home": {
     "brand": "Alienta",
-    "eyebrow": "Un espacio para respirar",
+    "eyebrow": "Un momento para ti",
     "title": "¿Cómo te sientes hoy?",
-    "subtitle": "Escríbelo con tus propias palabras. Queremos acompañarte con sencillez y respeto.",
-    "inputLabel": "Hoy me siento…",
-    "inputPlaceholder": "Por ejemplo: estoy preocupado por mi familia",
+    "subtitle": "Puedes elegir una opción o contarnos con tus palabras.",
+    "inputLabel": "Quiero contarte algo…",
+    "inputPlaceholder": "Escribe aquí lo que estás viviendo",
     "inputAccessibility": "Describe cómo te sientes hoy",
     "continue": "Encontrar aliento",
     "continueHint": "Continuará al acompañamiento bíblico",
-    "suggestionsTitle": "También puedes elegir una opción",
-    "privacy": "Puedes explorar sin crear una cuenta. Tu respuesta no se guardará en este prototipo.",
+    "privacy": "Tu respuesta es privada y no se guardará en este prototipo.",
     "thanksTitle": "Gracias por compartirlo",
     "thanksMessage": "En el siguiente hito conectaremos esta respuesta con versículos verificados y una reflexión segura.",
     "suggestions": {
       "peace": "Necesito paz",
-      "grateful": "Estoy agradecido",
+      "grateful": "Agradecido",
       "lonely": "Me siento solo",
       "hopeful": "Tengo esperanza"
     }

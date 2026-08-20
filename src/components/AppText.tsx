@@ -2,9 +2,9 @@ import type { PropsWithChildren } from 'react';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useAppTheme } from '@/theme/ThemeProvider';
-import type { AppColors } from '@/theme/tokens';
+import { fonts, type AppColors } from '@/theme/tokens';
 
-type TextVariant = 'body' | 'caption' | 'eyebrow' | 'heading' | 'hero';
+type TextVariant = 'body' | 'caption' | 'eyebrow' | 'heading' | 'hero' | 'serifBody';
 
 type AppTextProps = PropsWithChildren<
   TextProps & {
@@ -35,30 +35,37 @@ export function AppText({
 
 const styles = StyleSheet.create({
   body: {
+    fontFamily: fonts.sansRegular,
     fontSize: 17,
     lineHeight: 26,
   },
   caption: {
+    fontFamily: fonts.sansRegular,
     fontSize: 14,
     lineHeight: 20,
   },
   eyebrow: {
+    fontFamily: fonts.sansBold,
     fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 1.4,
     lineHeight: 20,
     textTransform: 'uppercase',
   },
   heading: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    lineHeight: 31,
+    fontFamily: fonts.serifSemibold,
+    fontSize: 30,
+    letterSpacing: -0.2,
+    lineHeight: 36,
   },
   hero: {
-    fontSize: 38,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-    lineHeight: 46,
+    fontFamily: fonts.serifSemibold,
+    fontSize: 44,
+    letterSpacing: -0.7,
+    lineHeight: 52,
+  },
+  serifBody: {
+    fontFamily: fonts.serifMedium,
+    fontSize: 21,
+    lineHeight: 27,
   },
 });
