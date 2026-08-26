@@ -4,12 +4,13 @@ Repositorio de trabajo para una aplicación móvil cristiana, accesible y multil
 
 ## Estado
 
-La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. La primera pantalla accesible de Alienta está preparada para ejecutarse en Android y web; la integración con Biblia, IA y Supabase se añadirá por fases.
+La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. La integración con Biblia, IA y Supabase se añadirá por fases.
 
 ## Documentación
 
 - [Análisis, MVP y arquitectura](docs/01-analisis-mvp-y-arquitectura.md)
 - [Ruta guiada de construcción](docs/02-ruta-guiada-de-construccion.md)
+- [Sistema visual de Alienta](docs/03-sistema-visual-alienta.md)
 
 ## Decisiones propuestas
 
@@ -21,11 +22,13 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. La primer
 
 ## Siguiente hito
 
-Implementar la navegación del MVP y el primer flujo local de “¿Cómo te sientes hoy?” antes de conectar servicios externos.
+Validar el sistema visual en iPhone y web; después implementar el flujo local completo de reflexión antes de conectar servicios externos.
 
 ## Desarrollo local
 
 Requisitos instalados: Node.js, OpenJDK 17, Android Studio, Android SDK 36 y un emulador Android.
+
+Después de instalar OpenJDK 17, reinicia la terminal para que Windows cargue las nuevas variables de entorno.
 
 ```powershell
 npm install
@@ -38,6 +41,7 @@ Otros comandos disponibles:
 npm start
 npm run web
 npm run lint
+npm run typecheck
 ```
 
 ## Flujo de Git

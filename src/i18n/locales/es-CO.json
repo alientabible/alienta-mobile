@@ -1,0 +1,117 @@
+{
+  "tabs": {
+    "home": "Hoy",
+    "bible": "Biblia",
+    "studies": "Estudios",
+    "communities": "Comunidad",
+    "profile": "Perfil"
+  },
+  "home": {
+    "brand": "Alienta",
+    "eyebrow": "Un espacio para respirar",
+    "title": "¿Cómo está tu corazón",
+    "titleAccent": "hoy?",
+    "subtitle": "Puedes llegar como estás. Queremos acompañarte con calma, verdad y respeto.",
+    "feelingsTitle": "Empieza por lo que sientes",
+    "feelingsDescription": "Elige una opción o cuéntanoslo con tus propias palabras.",
+    "inputLabel": "Quiero contarte algo…",
+    "inputPlaceholder": "Escribe aquí lo que estás viviendo",
+    "inputAccessibility": "Describe cómo te sientes hoy",
+    "continue": "Encontrar aliento",
+    "continueHint": "Continuará al acompañamiento bíblico",
+    "privacy": "Tu respuesta es privada y no se guardará en este prototipo.",
+    "thanksTitle": "Gracias por compartirlo",
+    "thanksMessage": "En el siguiente bloque conectaremos esta respuesta con versículos verificados y una reflexión segura.",
+    "suggestions": {
+      "peace": "Necesito paz",
+      "grateful": "Siento gratitud",
+      "lonely": "Me siento solo",
+      "hopeful": "Tengo esperanza"
+    },
+    "ritual": {
+      "eyebrow": "Un ritmo sencillo",
+      "title": "Leer. Orar. Reflexionar.",
+      "read": {
+        "title": "Leer",
+        "description": "Una palabra breve para volver al centro."
+      },
+      "pray": {
+        "title": "Orar",
+        "description": "Una oración sencilla para entregar el día."
+      },
+      "reflect": {
+        "title": "Reflexionar",
+        "description": "Un momento quieto para llevarlo a la vida."
+      }
+    }
+  },
+  "bible": {
+    "eyebrow": "Lectura sin ruido",
+    "title": "La Palabra, a tu ritmo.",
+    "description": "Una experiencia de lectura serena, legible y disponible incluso sin conexión.",
+    "preview": "Vista visual del Bloque C. El texto bíblico completo se añadirá solo después de verificar su procedencia y licencia.",
+    "todayEyebrow": "Versículo del día",
+    "todayTitle": "Una palabra para hoy",
+    "verse": "Estad quietos, y conoced que yo soy Dios.",
+    "reference": "Salmos 46:10 · RVR1909",
+    "readChapter": "Leer el capítulo completo",
+    "continueTitle": "Vuelve con calma",
+    "continueMeta": "Última lectura",
+    "continueCardTitle": "Salmos 23",
+    "continueDescription": "Continúa desde el versículo 4.",
+    "searchTitle": "Buscar en la Biblia",
+    "searchDescription": "Por palabra, pasaje o referencia."
+  },
+  "studies": {
+    "eyebrow": "Crecer con gracia",
+    "title": "Ritmo, no presión.",
+    "description": "Planes editoriales breves para comprender, practicar y regresar cada día con libertad.",
+    "preview": "Vista visual del Bloque G. El progreso es demostrativo; todavía no se guarda en el dispositivo.",
+    "activeTitle": "Tu camino actual",
+    "activeEyebrow": "Plan en curso",
+    "activeDay": "Día 3 de 7",
+    "activePlan": "Paz en medio de la ansiedad",
+    "activeDescription": "Hoy: soltar lo que no puedes controlar.",
+    "progress": "Progreso del plan",
+    "exploreTitle": "Explora próximos planes",
+    "sevenDays": "7 días",
+    "planOneTitle": "Gratitud cotidiana",
+    "planOneDescription": "Aprende a reconocer la gracia en lo pequeño.",
+    "planTwoTitle": "Volver a empezar",
+    "planTwoDescription": "Un recorrido bíblico para nuevas temporadas."
+  },
+  "communities": {
+    "eyebrow": "Fe acompañada",
+    "title": "Juntos, con cuidado.",
+    "description": "Círculos privados para orar, escuchar y animarse dentro de límites seguros.",
+    "preview": "Vista visual del piloto futuro. Comunidad no se habilitará hasta tener reglas, líderes verificados y moderación.",
+    "promiseEyebrow": "Nuestra promesa",
+    "promiseTitle": "Cercanía sin ruido",
+    "promiseDescription": "Grupos pequeños, privacidad clara y herramientas reales para reportar o bloquear.",
+    "circlesTitle": "Tus círculos",
+    "privateLabel": "Privado",
+    "invitationLabel": "Por invitación",
+    "circleOneTitle": "Círculo cercano",
+    "circleOneDescription": "Un espacio íntimo para compartir peticiones.",
+    "circleTwoTitle": "Comunidad local",
+    "circleTwoDescription": "Acompañamiento con liderazgo verificado."
+  },
+  "profile": {
+    "eyebrow": "Preferencias",
+    "title": "Tu espacio, a tu manera.",
+    "description": "Ajusta la experiencia sin perder la calma, la legibilidad ni tu privacidad.",
+    "preview": "El selector de apariencia ya funciona durante esta sesión. La persistencia y las demás preferencias se conectarán en sus bloques correspondientes.",
+    "appearanceTitle": "Apariencia",
+    "appearanceDescription": "Elige cómo quieres ver Alienta en este dispositivo.",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "preferencesTitle": "Más preferencias",
+    "language": "Idioma",
+    "languageValue": "Español (Colombia)",
+    "textSize": "Tamaño de texto",
+    "textSizeValue": "Usa el ajuste del dispositivo",
+    "privacy": "Privacidad",
+    "privacyValue": "Lectura básica sin cuenta"
+  }
+}

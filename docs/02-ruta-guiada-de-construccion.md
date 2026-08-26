@@ -105,6 +105,8 @@ No debe ejecutarse manualmente todavía. Antes se comprobará la plantilla vigen
 
 ### Bloque A. Sistema visual y accesibilidad
 
+La dirección visual y sus criterios de validación están documentados en [`03-sistema-visual-alienta.md`](03-sistema-visual-alienta.md).
+
 Archivos principales:
 
 - `src/theme/tokens.ts`
