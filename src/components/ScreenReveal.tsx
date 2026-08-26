@@ -1,15 +1,15 @@
 import { usePathname } from 'expo-router';
-import { type PropsWithChildren, useEffect } from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, {
-  cancelAnimation,
+import { type PropsWithChildren, useEffect, useState } from 'react';
+import {
+  Animated,
   Easing,
-  interpolate,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+  Platform,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 type ScreenRevealProps = PropsWithChildren<{
   style?: StyleProp<ViewStyle>;
@@ -20,29 +20,44 @@ type ScreenRevealProps = PropsWithChildren<{
  * sliding from an arbitrary edge. It replays when its tab regains focus.
  */
 export function ScreenReveal({ children, style }: ScreenRevealProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionPreference();
   const pathname = usePathname();
-  const progress = useSharedValue(1);
+  const [progress] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
+    progress.stopAnimation();
+
     if (reduceMotion) {
-      progress.value = 1;
+      progress.setValue(1);
       return undefined;
     }
 
-    progress.value = 0;
-    progress.value = withTiming(1, {
+    progress.setValue(0);
+    const reveal = Animated.timing(progress, {
+      toValue: 1,
       duration: 420,
       easing: Easing.out(Easing.cubic),
+      useNativeDriver: Platform.OS !== 'web',
     });
+    reveal.start();
 
-    return () => cancelAnimation(progress);
+    return () => reveal.stop();
   }, [pathname, progress, reduceMotion]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0.68, 1]),
-    transform: [{ scale: interpolate(progress.value, [0, 1], [0.976, 1]) }],
-  }));
+  const animatedStyle = {
+    opacity: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.68, 1],
+    }),
+    transform: [
+      {
+        scale: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.976, 1],
+        }),
+      },
+    ],
+  };
 
   return <Animated.View style={[styles.content, style, animatedStyle]}>{children}</Animated.View>;
 }

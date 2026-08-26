@@ -1,17 +1,9 @@
-import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type SectionTone } from '@/theme/tokens';
@@ -27,28 +19,53 @@ type SectionHeaderProps = {
 export function SectionHeader({ description, eyebrow, icon, title, tone }: SectionHeaderProps) {
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, tone);
-  const reduceMotion = useReducedMotion();
-  const breath = useSharedValue(0);
+  const reduceMotion = useReducedMotionPreference();
+  const [breath] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
+    breath.stopAnimation();
+
     if (reduceMotion) {
-      breath.value = 0;
+      breath.setValue(0);
       return undefined;
     }
 
-    breath.value = withRepeat(
-      withTiming(1, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true,
+    breath.setValue(0);
+    const breathing = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breath, {
+          toValue: 1,
+          duration: 5200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(breath, {
+          toValue: 0,
+          duration: 5200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]),
     );
+    breathing.start();
 
-    return () => cancelAnimation(breath);
+    return () => breathing.stop();
   }, [breath, reduceMotion]);
 
-  const orbStyle = useAnimatedStyle(() => ({
-    opacity: 0.07 + breath.value * 0.05,
-    transform: [{ scale: 1 + breath.value * 0.1 }],
-  }));
+  const orbStyle = {
+    opacity: breath.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.07, 0.12],
+    }),
+    transform: [
+      {
+        scale: breath.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.1],
+        }),
+      },
+    ],
+  };
 
   return (
     <View style={[styles.heroDepth, getPremiumDepth(theme, 'floating')]}>

@@ -1,14 +1,17 @@
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, type StyleProp, type ViewStyle, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { useEffect, useState } from 'react';
+import {
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+  View,
+} from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts } from '@/theme/tokens';
@@ -29,19 +32,40 @@ export function FeelingCard({
   style,
 }: FeelingCardProps) {
   const theme = useAppTheme();
-  const reduceMotion = useReducedMotion();
-  const selection = useSharedValue(selected ? 1 : 0);
+  const reduceMotion = useReducedMotionPreference();
+  const [selection] = useState(() => new Animated.Value(selected ? 1 : 0));
 
   useEffect(() => {
     const destination = selected ? 1 : 0;
-    selection.value = reduceMotion
-      ? destination
-      : withSpring(destination, { damping: 18, stiffness: 210 });
+    selection.stopAnimation();
+
+    if (reduceMotion) {
+      selection.setValue(destination);
+      return undefined;
+    }
+
+    const selectionSpring = Animated.spring(selection, {
+      toValue: destination,
+      damping: 18,
+      stiffness: 210,
+      mass: 1,
+      useNativeDriver: Platform.OS !== 'web',
+    });
+    selectionSpring.start();
+
+    return () => selectionSpring.stop();
   }, [reduceMotion, selected, selection]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + selection.value * 0.018 }],
-  }));
+  const animatedStyle = {
+    transform: [
+      {
+        scale: selection.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.018],
+        }),
+      },
+    ],
+  };
 
   return (
     <Animated.View

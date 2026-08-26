@@ -1,15 +1,10 @@
 import { Tabs } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, type ColorValue } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { Animated, Platform, StyleSheet, type ColorValue } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts } from '@/theme/tokens';
@@ -22,20 +17,44 @@ type TabIconProps = {
 
 function TabIcon({ color, focused, name }: TabIconProps) {
   const theme = useAppTheme();
-  const reduceMotion = useReducedMotion();
-  const focus = useSharedValue(focused ? 1 : 0);
+  const reduceMotion = useReducedMotionPreference();
+  const [focus] = useState(() => new Animated.Value(focused ? 1 : 0));
 
   useEffect(() => {
     const destination = focused ? 1 : 0;
-    focus.value = reduceMotion
-      ? destination
-      : withSpring(destination, { damping: 17, stiffness: 240 });
+    focus.stopAnimation();
+
+    if (reduceMotion) {
+      focus.setValue(destination);
+      return undefined;
+    }
+
+    const focusSpring = Animated.spring(focus, {
+      toValue: destination,
+      damping: 17,
+      stiffness: 240,
+      mass: 1,
+      useNativeDriver: Platform.OS !== 'web',
+    });
+    focusSpring.start();
+
+    return () => focusSpring.stop();
   }, [focus, focused, reduceMotion]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: 0.78 + focus.value * 0.22,
-    transform: [{ scale: 0.9 + focus.value * 0.16 }],
-  }));
+  const animatedStyle = {
+    opacity: focus.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.78, 1],
+    }),
+    transform: [
+      {
+        scale: focus.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.9, 1.06],
+        }),
+      },
+    ],
+  };
 
   return (
     <Animated.View
