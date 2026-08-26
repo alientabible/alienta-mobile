@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
 
 export default function StudiesScreen() {
@@ -42,7 +43,8 @@ export default function StudiesScreen() {
       <View
         style={[
           styles.progressCard,
-          { backgroundColor: palette.accent, shadowColor: theme.colors.shadow },
+          { backgroundColor: palette.accent },
+          getPremiumDepth(theme, 'floating'),
         ]}
       >
         <View style={styles.progressTopRow}>
@@ -111,12 +113,8 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     borderRadius: 28,
-    elevation: 3,
     marginTop: 16,
     padding: 22,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.16,
-    shadowRadius: 26,
   },
   progressTopRow: {
     alignItems: 'center',

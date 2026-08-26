@@ -1,7 +1,7 @@
-import { SymbolView } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { EditorialActionCard } from '@/components/EditorialActionCard';
@@ -10,6 +10,7 @@ import { Screen } from '@/components/Screen';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { SectionHeader } from '@/components/SectionHeader';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
 
 export default function BibleScreen() {
@@ -51,8 +52,8 @@ export default function BibleScreen() {
           {
             backgroundColor: theme.colors.surfaceElevated,
             borderColor: theme.colors.outline,
-            shadowColor: theme.colors.shadow,
           },
+          getPremiumDepth(theme, 'floating'),
         ]}
       >
         <AppText style={[styles.quoteMark, { color: palette.accent }]} variant="heroItalic">
@@ -67,7 +68,7 @@ export default function BibleScreen() {
         <View style={[styles.verseRule, { backgroundColor: theme.colors.outline }]} />
         <View style={styles.readRow}>
           <View style={[styles.readIcon, { backgroundColor: palette.soft }]}>
-            <SymbolView
+            <AppIcon
               name={{ android: 'auto_stories', ios: 'text.book.closed' }}
               size={20}
               tintColor={palette.accent}
@@ -75,7 +76,7 @@ export default function BibleScreen() {
             />
           </View>
           <AppText style={styles.readLabel}>{t('bible.readChapter')}</AppText>
-          <SymbolView
+          <AppIcon
             name={{ android: 'arrow_forward', ios: 'arrow.right' }}
             size={18}
             tintColor={theme.colors.textMuted}
@@ -125,13 +126,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 28,
     borderWidth: 1,
-    elevation: 2,
     marginTop: 16,
     paddingHorizontal: 24,
     paddingTop: 20,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.07,
-    shadowRadius: 24,
   },
   quoteMark: {
     fontSize: 48,

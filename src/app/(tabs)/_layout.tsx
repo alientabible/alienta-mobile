@@ -1,25 +1,52 @@
 import { Tabs } from 'expo-router';
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ColorValue } from 'react-native';
+import { StyleSheet, type ColorValue } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts } from '@/theme/tokens';
 
 type TabIconProps = {
   color: ColorValue;
   focused: boolean;
-  name: SymbolViewProps['name'];
+  name: AppIconName;
 };
 
 function TabIcon({ color, focused, name }: TabIconProps) {
+  const theme = useAppTheme();
+  const reduceMotion = useReducedMotion();
+  const focus = useSharedValue(focused ? 1 : 0);
+
+  useEffect(() => {
+    const destination = focused ? 1 : 0;
+    focus.value = reduceMotion
+      ? destination
+      : withSpring(destination, { damping: 17, stiffness: 240 });
+  }, [focus, focused, reduceMotion]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 0.78 + focus.value * 0.22,
+    transform: [{ scale: 0.9 + focus.value * 0.16 }],
+  }));
+
   return (
-    <SymbolView
-      name={name}
-      size={focused ? 25 : 23}
-      tintColor={color}
-      type="monochrome"
-    />
+    <Animated.View
+      style={[
+        styles.tabIcon,
+        { backgroundColor: focused ? theme.colors.accentSoft : 'transparent' },
+        animatedStyle,
+      ]}
+    >
+      <AppIcon name={name} size={22} tintColor={color} type="monochrome" />
+    </Animated.View>
   );
 }
 
@@ -45,10 +72,7 @@ export default function TabLayout() {
           backgroundColor: theme.colors.surface,
           paddingBottom: 7,
           paddingTop: 8,
-          shadowColor: theme.colors.shadow,
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.05,
-          shadowRadius: 18,
+          ...getPremiumDepth(theme, 'raised'),
         },
       }}
     >
@@ -105,3 +129,13 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIcon: {
+    alignItems: 'center',
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 38,
+  },
+});

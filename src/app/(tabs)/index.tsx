@@ -1,4 +1,3 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useMemo, useState } from 'react';
 import {
   Alert,
@@ -14,22 +13,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { AppButton } from '@/components/AppButton';
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { FeelingCard } from '@/components/FeelingCard';
 import { PreviewNotice } from '@/components/PreviewNotice';
+import { ScreenReveal } from '@/components/ScreenReveal';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type AppTheme } from '@/theme/tokens';
 
 type FeelingOption = {
   id: 'peace' | 'grateful' | 'lonely' | 'hopeful';
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   label: string;
 };
 
 type RitualStep = {
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   label: string;
   number: string;
   supportingText: string;
@@ -106,42 +108,47 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <ScreenReveal>
           <View style={styles.topBar}>
             <BrandLockup />
             <ThemeQuickToggle />
           </View>
 
-          <View
+          <View style={[styles.heroDepth, getPremiumDepth(theme, 'floating')]}>
+            <View
             style={[
               styles.hero,
               {
                 backgroundColor: palette.soft,
                 borderColor: theme.colors.outline,
-                shadowColor: theme.colors.shadow,
               },
             ]}
-          >
-            <View
-              accessibilityElementsHidden
-              style={[styles.heroRing, { borderColor: palette.accent }]}
-            />
-            <View
-              accessibilityElementsHidden
-              style={[styles.heroOrb, { backgroundColor: palette.accent }]}
-            />
-            <AppText style={[styles.eyebrow, { color: palette.accent }]} variant="eyebrow">
-              {t('home.eyebrow')}
-            </AppText>
-            <AppText accessibilityRole="header" style={styles.title} variant="hero">
-              {t('home.title')}
-            </AppText>
-            <AppText style={[styles.titleAccent, { color: palette.accent }]} variant="heroItalic">
-              {t('home.titleAccent')}
-            </AppText>
-            <View style={[styles.heroRule, { backgroundColor: palette.accent }]} />
-            <AppText color="textMuted" style={styles.subtitle}>
-              {t('home.subtitle')}
-            </AppText>
+            >
+              <View
+                accessibilityElementsHidden
+                style={[styles.heroRing, { borderColor: palette.accent }]}
+              />
+              <View
+                accessibilityElementsHidden
+                style={[styles.heroOrb, { backgroundColor: palette.accent }]}
+              />
+              <AppText style={[styles.eyebrow, { color: palette.accent }]} variant="eyebrow">
+                {t('home.eyebrow')}
+              </AppText>
+              <AppText accessibilityRole="header" style={styles.title} variant="hero">
+                {t('home.title')}
+              </AppText>
+              <AppText
+                style={[styles.titleAccent, { color: palette.accent }]}
+                variant="heroItalic"
+              >
+                {t('home.titleAccent')}
+              </AppText>
+              <View style={[styles.heroRule, { backgroundColor: palette.accent }]} />
+              <AppText color="textMuted" style={styles.subtitle}>
+                {t('home.subtitle')}
+              </AppText>
+            </View>
           </View>
 
           <View style={styles.sectionHeading}>
@@ -174,8 +181,8 @@ export default function HomeScreen() {
               {
                 backgroundColor: theme.colors.surfaceElevated,
                 borderColor: theme.colors.outline,
-                shadowColor: theme.colors.shadow,
               },
+              getPremiumDepth(theme, 'raised'),
             ]}
           >
             <View style={styles.inputHeader}>
@@ -230,13 +237,14 @@ export default function HomeScreen() {
                     backgroundColor: theme.colors.surface,
                     borderColor: theme.colors.outline,
                   },
+                  getPremiumDepth(theme, 'soft'),
                 ]}
               >
                 <AppText style={[styles.stepNumber, { color: palette.accent }]} variant="caption">
                   {step.number}
                 </AppText>
                 <View style={[styles.ritualIcon, { backgroundColor: palette.soft }]}>
-                  <SymbolView
+                  <AppIcon
                     name={step.icon}
                     size={22}
                     tintColor={palette.accent}
@@ -254,6 +262,7 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
+          </ScreenReveal>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -282,17 +291,16 @@ function createStyles(theme: AppTheme) {
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
+    heroDepth: {
+      borderRadius: 32,
+      marginTop: 22,
+    },
     hero: {
       borderRadius: 32,
       borderWidth: StyleSheet.hairlineWidth,
-      elevation: 2,
-      marginTop: 22,
       minHeight: 344,
       overflow: 'hidden',
       padding: 24,
-      shadowOffset: { width: 0, height: 14 },
-      shadowOpacity: 0.08,
-      shadowRadius: 28,
     },
     heroRing: {
       borderRadius: 105,
@@ -362,13 +370,9 @@ function createStyles(theme: AppTheme) {
     inputCard: {
       borderRadius: 26,
       borderWidth: 1,
-      elevation: 2,
       gap: 14,
       marginTop: 16,
       padding: 18,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.06,
-      shadowRadius: 22,
     },
     inputHeader: {
       alignItems: 'center',

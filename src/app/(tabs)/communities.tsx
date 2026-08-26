@@ -1,7 +1,7 @@
-import { SymbolView } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { EditorialActionCard } from '@/components/EditorialActionCard';
@@ -10,6 +10,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
 
 export default function CommunitiesScreen() {
@@ -40,6 +41,7 @@ export default function CommunitiesScreen() {
         style={[
           styles.promiseCard,
           { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.outline },
+          getPremiumDepth(theme, 'raised'),
         ]}
       >
         <View style={styles.peopleGraphic}>
@@ -47,7 +49,7 @@ export default function CommunitiesScreen() {
           <View style={[styles.person, styles.personTop, { backgroundColor: palette.accent }]} />
           <View style={[styles.person, styles.personRight, { backgroundColor: palette.soft }]} />
           <View style={[styles.centerMark, { backgroundColor: palette.accent }]}>
-            <SymbolView
+            <AppIcon
               name={{ android: 'favorite', ios: 'heart.fill' }}
               size={17}
               tintColor={palette.onAccent}

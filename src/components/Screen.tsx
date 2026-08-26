@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ScreenReveal } from '@/components/ScreenReveal';
 import { useAppTheme } from '@/theme/ThemeProvider';
 
 type ScreenProps = PropsWithChildren<
@@ -28,7 +29,7 @@ export function Screen({ children, contentStyle, ...props }: ScreenProps) {
         showsVerticalScrollIndicator={false}
         {...props}
       >
-        {children}
+        <ScreenReveal>{children}</ScreenReveal>
       </ScrollView>
     </SafeAreaView>
   );

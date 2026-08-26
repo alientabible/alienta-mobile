@@ -1,6 +1,6 @@
-import { SymbolView } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 
+import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getSectionPalette, type SectionTone } from '@/theme/tokens';
@@ -19,7 +19,7 @@ export function PreviewNotice({ children, tone }: PreviewNoticeProps) {
       accessibilityRole="text"
       style={[styles.notice, { backgroundColor: palette.soft, borderColor: theme.colors.outline }]}
     >
-      <SymbolView
+      <AppIcon
         name={{ android: 'info', ios: 'info.circle' }}
         size={18}
         tintColor={palette.accent}

@@ -1,13 +1,14 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { StyleSheet, View } from 'react-native';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type SectionTone } from '@/theme/tokens';
 
 type EditorialActionCardProps = {
   description: string;
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   meta?: string;
   title: string;
   tone: SectionTone;
@@ -30,12 +31,12 @@ export function EditorialActionCard({
         {
           backgroundColor: theme.colors.surfaceElevated,
           borderColor: theme.colors.outline,
-          shadowColor: theme.colors.shadow,
         },
+        getPremiumDepth(theme, 'raised'),
       ]}
     >
       <View style={[styles.iconWell, { backgroundColor: palette.soft }]}>
-        <SymbolView name={icon} size={23} tintColor={palette.accent} type="monochrome" />
+        <AppIcon name={icon} size={23} tintColor={palette.accent} type="monochrome" />
       </View>
       <View style={styles.copy}>
         {meta ? (
@@ -50,7 +51,7 @@ export function EditorialActionCard({
           {description}
         </AppText>
       </View>
-      <SymbolView
+      <AppIcon
         name={{ android: 'arrow_forward', ios: 'arrow.right' }}
         size={18}
         tintColor={theme.colors.textMuted}
@@ -65,13 +66,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 22,
     borderWidth: 1,
-    elevation: 1,
     flexDirection: 'row',
     minHeight: 112,
     padding: 15,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 18,
   },
   iconWell: {
     alignItems: 'center',

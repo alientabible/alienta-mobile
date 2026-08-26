@@ -65,6 +65,23 @@ Los tonos secundarios ayudan a orientarse sin convertir cada sección en una apl
 - `EditorialActionCard`: tarjeta reutilizable para acciones o contenido.
 - `PreviewNotice`: separa con honestidad una vista visual de una función terminada.
 - `ThemeQuickToggle`: validación rápida de claro y oscuro.
+- `AppIcon`: una única fuente de iconos con SF Symbols en iOS y Material Symbols en Android/web.
+- `ScreenReveal`: transición no direccional que lleva cada sección suavemente a foco.
+
+## Profundidad y movimiento
+
+La profundidad se organiza en tres niveles: `soft`, `raised` y `floating`. En web se
+representa con `boxShadow` y una luz interior sutil; en iOS usa sombras nativas y en
+Android combina elevación con el color de sombra del tema.
+
+El movimiento editorial evita desplazamientos decorativos entre pantallas:
+
+- las secciones aparecen mediante una transición breve de enfoque, escala y opacidad;
+- el icono activo de la navegación responde con un resorte amortiguado;
+- las tarjetas de sentimientos elevan ligeramente su profundidad al seleccionarse;
+- los elementos ambientales de los encabezados respiran de forma lenta y discreta;
+- todas las animaciones ambientales o de transición se detienen si el sistema solicita
+  reducir movimiento.
 
 ## Reglas de experiencia
 
@@ -72,7 +89,7 @@ Los tonos secundarios ayudan a orientarse sin convertir cada sección en una apl
 2. Ningún texto esencial sobre fondos fotográficos sin una capa de contraste verificada.
 3. Áreas táctiles de al menos 48 puntos.
 4. Las tarjetas no sustituyen la jerarquía: los títulos y el espacio deben guiar primero.
-5. Animaciones futuras breves y opcionales; respetar reducir movimiento.
+5. Animaciones breves, funcionales y opcionales; respetar reducir movimiento.
 6. Las funciones aún no construidas se muestran como vistas previas, nunca como capacidades disponibles.
 
 ## Validación antes de aprobar el sistema

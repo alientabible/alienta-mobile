@@ -1,7 +1,7 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { PreviewNotice } from '@/components/PreviewNotice';
@@ -9,10 +9,11 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { type ThemeMode, useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
 
 type ThemeOption = {
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   label: string;
   mode: ThemeMode;
 };
@@ -71,6 +72,7 @@ export default function ProfileScreen() {
         style={[
           styles.themePicker,
           { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
+          getPremiumDepth(theme, 'soft'),
         ]}
       >
         {themeOptions.map((option) => {
@@ -89,7 +91,7 @@ export default function ProfileScreen() {
                 pressed && styles.pressed,
               ]}
             >
-              <SymbolView
+              <AppIcon
                 name={option.icon}
                 size={21}
                 tintColor={selected ? palette.accent : theme.colors.textMuted}
@@ -115,6 +117,7 @@ export default function ProfileScreen() {
         style={[
           styles.preferencesCard,
           { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.outline },
+          getPremiumDepth(theme, 'raised'),
         ]}
       >
         <PreferenceRow
@@ -144,7 +147,7 @@ function PreferenceRow({
   label,
   value,
 }: {
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   label: string;
   value: string;
 }) {
@@ -154,7 +157,7 @@ function PreferenceRow({
   return (
     <View style={styles.preferenceRow}>
       <View style={[styles.preferenceIcon, { backgroundColor: palette.soft }]}>
-        <SymbolView name={icon} size={20} tintColor={palette.accent} type="monochrome" />
+        <AppIcon name={icon} size={20} tintColor={palette.accent} type="monochrome" />
       </View>
       <View style={styles.preferenceCopy}>
         <AppText style={styles.preferenceLabel}>{label}</AppText>
@@ -162,7 +165,7 @@ function PreferenceRow({
           {value}
         </AppText>
       </View>
-      <SymbolView
+      <AppIcon
         name={{ android: 'chevron_right', ios: 'chevron.right' }}
         size={17}
         tintColor={theme.colors.textMuted}

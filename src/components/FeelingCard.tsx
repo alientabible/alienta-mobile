@@ -1,12 +1,20 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts } from '@/theme/tokens';
 
 type FeelingCardProps = {
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   label: string;
   onPress: () => void;
   selected?: boolean;
@@ -21,63 +29,86 @@ export function FeelingCard({
   style,
 }: FeelingCardProps) {
   const theme = useAppTheme();
+  const reduceMotion = useReducedMotion();
+  const selection = useSharedValue(selected ? 1 : 0);
+
+  useEffect(() => {
+    const destination = selected ? 1 : 0;
+    selection.value = reduceMotion
+      ? destination
+      : withSpring(destination, { damping: 18, stiffness: 210 });
+  }, [reduceMotion, selected, selection]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 + selection.value * 0.018 }],
+  }));
 
   return (
-    <Pressable
-      accessibilityLabel={`Seleccionar sentimiento: ${label}`}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
+    <Animated.View
+      style={[
+        styles.depthLayer,
         style,
         {
           backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
-          borderColor: selected ? theme.colors.primary : theme.colors.outline,
-          shadowColor: theme.colors.text,
         },
-        pressed && styles.pressed,
+        getPremiumDepth(theme, selected ? 'raised' : 'soft'),
+        animatedStyle,
       ]}
     >
-      <View
-        style={[
-          styles.iconWell,
-          { backgroundColor: selected ? theme.colors.accentSoft : theme.colors.primarySoft },
+      <Pressable
+        accessibilityLabel={`Seleccionar sentimiento: ${label}`}
+        accessibilityRole="radio"
+        accessibilityState={{ selected }}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.card,
+          {
+            backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surface,
+            borderColor: selected ? theme.colors.primary : theme.colors.outline,
+          },
+          pressed && styles.pressed,
         ]}
       >
-        <SymbolView
-          name={icon}
-          size={25}
-          tintColor={selected ? theme.colors.accent : theme.colors.primary}
-          type="monochrome"
+        <View
+          style={[
+            styles.iconWell,
+            { backgroundColor: selected ? theme.colors.accentSoft : theme.colors.primarySoft },
+          ]}
+        >
+          <AppIcon
+            name={icon}
+            size={25}
+            tintColor={selected ? theme.colors.accent : theme.colors.primary}
+            type="monochrome"
+          />
+        </View>
+        <AppText style={styles.label}>{label}</AppText>
+        <View
+          accessibilityElementsHidden
+          style={[
+            styles.selectionDot,
+            {
+              backgroundColor: selected ? theme.colors.accent : 'transparent',
+              borderColor: selected ? theme.colors.accent : theme.colors.outline,
+            },
+          ]}
         />
-      </View>
-      <AppText style={styles.label}>{label}</AppText>
-      <View
-        accessibilityElementsHidden
-        style={[
-          styles.selectionDot,
-          {
-            backgroundColor: selected ? theme.colors.accent : 'transparent',
-            borderColor: selected ? theme.colors.accent : theme.colors.outline,
-          },
-        ]}
-      />
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  depthLayer: {
+    borderRadius: 24,
+  },
   card: {
     minHeight: 118,
     borderRadius: 24,
     borderWidth: 1,
-    elevation: 1,
+    flex: 1,
     justifyContent: 'space-between',
     padding: 14,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
   },
   pressed: {
     opacity: 0.88,

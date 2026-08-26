@@ -1,6 +1,6 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { fonts } from '@/theme/tokens';
@@ -8,7 +8,7 @@ import { fonts } from '@/theme/tokens';
 type AppButtonProps = {
   accessibilityHint?: string;
   disabled?: boolean;
-  icon?: SymbolViewProps['name'];
+  icon?: AppIconName;
   label: string;
   onPress: () => void;
 };
@@ -49,7 +49,7 @@ export function AppButton({
           {label}
         </AppText>
         {icon ? (
-          <SymbolView
+          <AppIcon
             name={icon}
             size={20}
             tintColor={disabled ? theme.colors.textMuted : theme.colors.onPrimary}

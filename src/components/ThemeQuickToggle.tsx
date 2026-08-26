@@ -1,6 +1,6 @@
-import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet } from 'react-native';
 
+import { AppIcon } from '@/components/AppIcon';
 import { useAppTheme } from '@/theme/ThemeProvider';
 
 export function ThemeQuickToggle() {
@@ -22,7 +22,7 @@ export function ThemeQuickToggle() {
         pressed && styles.pressed,
       ]}
     >
-      <SymbolView
+      <AppIcon
         name={
           theme.isDark
             ? { android: 'light_mode', ios: 'sun.max' }

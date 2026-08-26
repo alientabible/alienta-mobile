@@ -1,14 +1,25 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
+import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { useAppTheme } from '@/theme/ThemeProvider';
+import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type SectionTone } from '@/theme/tokens';
 
 type SectionHeaderProps = {
   description: string;
   eyebrow: string;
-  icon: SymbolViewProps['name'];
+  icon: AppIconName;
   title: string;
   tone: SectionTone;
 };
@@ -16,57 +27,82 @@ type SectionHeaderProps = {
 export function SectionHeader({ description, eyebrow, icon, title, tone }: SectionHeaderProps) {
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, tone);
+  const reduceMotion = useReducedMotion();
+  const breath = useSharedValue(0);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      breath.value = 0;
+      return undefined;
+    }
+
+    breath.value = withRepeat(
+      withTiming(1, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+
+    return () => cancelAnimation(breath);
+  }, [breath, reduceMotion]);
+
+  const orbStyle = useAnimatedStyle(() => ({
+    opacity: 0.07 + breath.value * 0.05,
+    transform: [{ scale: 1 + breath.value * 0.1 }],
+  }));
 
   return (
-    <View
-      style={[
-        styles.hero,
-        {
-          backgroundColor: palette.soft,
-          borderColor: theme.colors.outline,
-          shadowColor: theme.colors.shadow,
-        },
-      ]}
-    >
+    <View style={[styles.heroDepth, getPremiumDepth(theme, 'floating')]}>
       <View
-        accessibilityElementsHidden
-        style={[styles.orbLarge, { borderColor: palette.accent }]}
-      />
-      <View accessibilityElementsHidden style={[styles.orbSmall, { backgroundColor: palette.accent }]} />
-
-      <View style={[styles.iconWell, { backgroundColor: palette.accent }]}>
-        <SymbolView
-          name={icon}
-          size={24}
-          tintColor={palette.onAccent}
-          type="monochrome"
+        style={[
+          styles.hero,
+          {
+            backgroundColor: palette.soft,
+            borderColor: theme.colors.outline,
+          },
+        ]}
+      >
+        <View
+          accessibilityElementsHidden
+          style={[styles.orbLarge, { borderColor: palette.accent }]}
         />
+        <Animated.View
+          accessibilityElementsHidden
+          style={[styles.orbSmall, { backgroundColor: palette.accent }, orbStyle]}
+        />
+
+        <View style={[styles.iconWell, { backgroundColor: palette.accent }]}>
+          <AppIcon
+            name={icon}
+            size={24}
+            tintColor={palette.onAccent}
+            type="monochrome"
+          />
+        </View>
+        <AppText style={[styles.eyebrow, { color: palette.accent }]} variant="eyebrow">
+          {eyebrow}
+        </AppText>
+        <AppText accessibilityRole="header" style={styles.title} variant="hero">
+          {title}
+        </AppText>
+        <View style={[styles.rule, { backgroundColor: palette.accent }]} />
+        <AppText color="textMuted" style={styles.description}>
+          {description}
+        </AppText>
       </View>
-      <AppText style={[styles.eyebrow, { color: palette.accent }]} variant="eyebrow">
-        {eyebrow}
-      </AppText>
-      <AppText accessibilityRole="header" style={styles.title} variant="hero">
-        {title}
-      </AppText>
-      <View style={[styles.rule, { backgroundColor: palette.accent }]} />
-      <AppText color="textMuted" style={styles.description}>
-        {description}
-      </AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  heroDepth: {
+    borderRadius: 30,
+  },
   hero: {
     borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
-    elevation: 2,
     minHeight: 290,
     overflow: 'hidden',
     padding: 24,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
   },
   orbLarge: {
     borderRadius: 95,
