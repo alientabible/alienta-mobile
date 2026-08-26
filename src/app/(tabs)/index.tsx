@@ -1,3 +1,4 @@
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useMemo, useState } from 'react';
 import {
   Alert,
@@ -16,21 +17,28 @@ import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { FeelingCard } from '@/components/FeelingCard';
+import { PreviewNotice } from '@/components/PreviewNotice';
+import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { useAppTheme } from '@/theme/ThemeProvider';
-import { fonts, type AppTheme } from '@/theme/tokens';
+import { fonts, getSectionPalette, type AppTheme } from '@/theme/tokens';
 
 type FeelingOption = {
   id: 'peace' | 'grateful' | 'lonely' | 'hopeful';
-  icon: {
-    android: 'air' | 'favorite_border' | 'person_outline' | 'wb_sunny';
-    ios: 'wind' | 'heart' | 'person' | 'sun.max';
-  };
+  icon: SymbolViewProps['name'];
   label: string;
+};
+
+type RitualStep = {
+  icon: SymbolViewProps['name'];
+  label: string;
+  number: string;
+  supportingText: string;
 };
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const palette = getSectionPalette(theme, 'home');
   const { fontScale, width } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedFeeling, setSelectedFeeling] = useState<FeelingOption['id'] | null>(null);
@@ -61,6 +69,27 @@ export default function HomeScreen() {
     },
   ];
 
+  const ritualSteps: RitualStep[] = [
+    {
+      icon: { android: 'menu_book', ios: 'book' },
+      label: t('home.ritual.read.title'),
+      number: '01',
+      supportingText: t('home.ritual.read.description'),
+    },
+    {
+      icon: { android: 'volunteer_activism', ios: 'hands.sparkles' },
+      label: t('home.ritual.pray.title'),
+      number: '02',
+      supportingText: t('home.ritual.pray.description'),
+    },
+    {
+      icon: { android: 'spa', ios: 'leaf' },
+      label: t('home.ritual.reflect.title'),
+      number: '03',
+      supportingText: t('home.ritual.reflect.description'),
+    },
+  ];
+
   const handleContinue = () => {
     if (!canContinue) return;
     Alert.alert(t('home.thanksTitle'), t('home.thanksMessage'));
@@ -77,18 +106,50 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <BrandLockup />
+          <View style={styles.topBar}>
+            <BrandLockup />
+            <ThemeQuickToggle />
+          </View>
 
-          <View style={styles.hero}>
-            <View style={[styles.eyebrowLine, { backgroundColor: theme.colors.accent }]} />
-            <AppText color="accent" style={styles.eyebrow} variant="eyebrow">
+          <View
+            style={[
+              styles.hero,
+              {
+                backgroundColor: palette.soft,
+                borderColor: theme.colors.outline,
+                shadowColor: theme.colors.shadow,
+              },
+            ]}
+          >
+            <View
+              accessibilityElementsHidden
+              style={[styles.heroRing, { borderColor: palette.accent }]}
+            />
+            <View
+              accessibilityElementsHidden
+              style={[styles.heroOrb, { backgroundColor: palette.accent }]}
+            />
+            <AppText style={[styles.eyebrow, { color: palette.accent }]} variant="eyebrow">
               {t('home.eyebrow')}
             </AppText>
             <AppText accessibilityRole="header" style={styles.title} variant="hero">
               {t('home.title')}
             </AppText>
+            <AppText style={[styles.titleAccent, { color: palette.accent }]} variant="heroItalic">
+              {t('home.titleAccent')}
+            </AppText>
+            <View style={[styles.heroRule, { backgroundColor: palette.accent }]} />
             <AppText color="textMuted" style={styles.subtitle}>
               {t('home.subtitle')}
+            </AppText>
+          </View>
+
+          <View style={styles.sectionHeading}>
+            <AppText accessibilityRole="header" variant="heading">
+              {t('home.feelingsTitle')}
+            </AppText>
+            <AppText color="textMuted" style={styles.sectionDescription} variant="caption">
+              {t('home.feelingsDescription')}
             </AppText>
           </View>
 
@@ -111,13 +172,18 @@ export default function HomeScreen() {
             style={[
               styles.inputCard,
               {
-                backgroundColor: theme.colors.surface,
+                backgroundColor: theme.colors.surfaceElevated,
                 borderColor: theme.colors.outline,
-                shadowColor: theme.colors.text,
+                shadowColor: theme.colors.shadow,
               },
             ]}
           >
-            <AppText style={styles.inputLabel}>{t('home.inputLabel')}</AppText>
+            <View style={styles.inputHeader}>
+              <AppText style={styles.inputLabel}>{t('home.inputLabel')}</AppText>
+              <AppText color="textMuted" style={styles.characterCount} variant="caption">
+                {note.length}/240
+              </AppText>
+            </View>
             <TextInput
               accessibilityLabel={t('home.inputAccessibility')}
               maxLength={240}
@@ -126,18 +192,14 @@ export default function HomeScreen() {
               onSubmitEditing={handleContinue}
               placeholder={t('home.inputPlaceholder')}
               placeholderTextColor={theme.colors.textMuted}
-              selectionColor={theme.colors.accent}
-              style={[styles.input, { color: theme.colors.text }]}
+              selectionColor={palette.accent}
+              style={[
+                styles.input,
+                { backgroundColor: theme.colors.surface, color: theme.colors.text },
+              ]}
               textAlignVertical="top"
               value={note}
             />
-            <View style={[styles.inputRule, { backgroundColor: theme.colors.outline }]} />
-            <AppText color="textMuted" style={styles.characterCount} variant="caption">
-              {note.length}/240
-            </AppText>
-          </View>
-
-          <View style={styles.buttonSpacing}>
             <AppButton
               accessibilityHint={t('home.continueHint')}
               disabled={!canContinue}
@@ -147,11 +209,50 @@ export default function HomeScreen() {
             />
           </View>
 
-          <View style={styles.privacyNote}>
-            <View style={[styles.privacyDot, { backgroundColor: theme.colors.accent }]} />
-            <AppText color="textMuted" style={styles.privacyText} variant="caption">
-              {t('home.privacy')}
+          <PreviewNotice tone="home">{t('home.privacy')}</PreviewNotice>
+
+          <View style={styles.ritualHeading}>
+            <AppText color="accent" variant="eyebrow">
+              {t('home.ritual.eyebrow')}
             </AppText>
+            <AppText accessibilityRole="header" style={styles.ritualTitle} variant="heading">
+              {t('home.ritual.title')}
+            </AppText>
+          </View>
+
+          <View style={styles.ritualList}>
+            {ritualSteps.map((step) => (
+              <View
+                key={step.number}
+                style={[
+                  styles.ritualCard,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.outline,
+                  },
+                ]}
+              >
+                <AppText style={[styles.stepNumber, { color: palette.accent }]} variant="caption">
+                  {step.number}
+                </AppText>
+                <View style={[styles.ritualIcon, { backgroundColor: palette.soft }]}>
+                  <SymbolView
+                    name={step.icon}
+                    size={22}
+                    tintColor={palette.accent}
+                    type="monochrome"
+                  />
+                </View>
+                <View style={styles.ritualCopy}>
+                  <AppText style={styles.ritualLabel} variant="serifBody">
+                    {step.label}
+                  </AppText>
+                  <AppText color="textMuted" style={styles.ritualDescription} variant="caption">
+                    {step.supportingText}
+                  </AppText>
+                </View>
+              </View>
+            ))}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -162,49 +263,94 @@ export default function HomeScreen() {
 function createStyles(theme: AppTheme) {
   return StyleSheet.create({
     safeArea: {
-      flex: 1,
       backgroundColor: theme.colors.background,
+      flex: 1,
     },
     keyboardView: {
       flex: 1,
     },
     content: {
-      paddingBottom: 28,
-      paddingHorizontal: 22,
-      paddingTop: 14,
+      alignSelf: 'center',
+      maxWidth: 720,
+      paddingBottom: 38,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      width: '100%',
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     hero: {
-      alignItems: 'center',
-      marginTop: 24,
+      borderRadius: 32,
+      borderWidth: StyleSheet.hairlineWidth,
+      elevation: 2,
+      marginTop: 22,
+      minHeight: 344,
+      overflow: 'hidden',
+      padding: 24,
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: 0.08,
+      shadowRadius: 28,
     },
-    eyebrowLine: {
-      borderRadius: 2,
-      height: 2,
-      marginBottom: 14,
-      width: 34,
+    heroRing: {
+      borderRadius: 105,
+      borderWidth: 1,
+      height: 210,
+      opacity: 0.18,
+      position: 'absolute',
+      right: -72,
+      top: -45,
+      width: 210,
+    },
+    heroOrb: {
+      borderRadius: 42,
+      height: 84,
+      opacity: 0.09,
+      position: 'absolute',
+      right: 32,
+      top: 45,
+      width: 84,
     },
     eyebrow: {
       fontSize: 12,
-      textAlign: 'center',
+      marginTop: 24,
     },
     title: {
-      color: theme.colors.primary,
-      marginTop: 9,
-      maxWidth: 340,
-      textAlign: 'center',
+      fontSize: 47,
+      lineHeight: 48,
+      marginTop: 18,
+      maxWidth: 360,
+    },
+    titleAccent: {
+      fontSize: 47,
+      lineHeight: 48,
+      marginTop: -2,
+    },
+    heroRule: {
+      borderRadius: 2,
+      height: 2,
+      marginTop: 22,
+      width: 42,
     },
     subtitle: {
       fontSize: 16,
       lineHeight: 24,
-      marginTop: 9,
-      maxWidth: 345,
-      textAlign: 'center',
+      marginTop: 15,
+      maxWidth: 330,
+    },
+    sectionHeading: {
+      marginTop: 34,
+    },
+    sectionDescription: {
+      marginTop: 4,
     },
     feelingGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 12,
-      marginTop: 22,
+      marginTop: 18,
     },
     halfCard: {
       flexBasis: '47%',
@@ -214,59 +360,80 @@ function createStyles(theme: AppTheme) {
       flexBasis: '100%',
     },
     inputCard: {
-      borderRadius: 24,
+      borderRadius: 26,
       borderWidth: 1,
-      elevation: 1,
-      marginTop: 14,
-      minHeight: 132,
-      paddingHorizontal: 18,
-      paddingTop: 17,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.05,
-      shadowRadius: 16,
+      elevation: 2,
+      gap: 14,
+      marginTop: 16,
+      padding: 18,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.06,
+      shadowRadius: 22,
+    },
+    inputHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
     },
     inputLabel: {
       fontFamily: fonts.sansSemibold,
       fontSize: 15,
     },
+    characterCount: {
+      fontSize: 12,
+    },
     input: {
-      flex: 1,
+      borderRadius: 18,
       fontFamily: fonts.sansRegular,
       fontSize: 16,
       lineHeight: 24,
-      minHeight: 70,
-      paddingHorizontal: 0,
-      paddingTop: 8,
+      minHeight: 116,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
     },
-    inputRule: {
-      height: StyleSheet.hairlineWidth,
+    ritualHeading: {
+      marginTop: 38,
     },
-    characterCount: {
-      alignSelf: 'flex-end',
-      fontSize: 12,
-      paddingBottom: 9,
-      paddingTop: 5,
+    ritualTitle: {
+      marginTop: 6,
     },
-    buttonSpacing: {
-      marginTop: 14,
+    ritualList: {
+      gap: 10,
+      marginTop: 16,
     },
-    privacyNote: {
+    ritualCard: {
       alignItems: 'center',
-      alignSelf: 'center',
+      borderRadius: 22,
+      borderWidth: 1,
       flexDirection: 'row',
-      gap: 9,
-      marginTop: 14,
-      maxWidth: 320,
+      minHeight: 94,
+      padding: 14,
     },
-    privacyDot: {
-      borderRadius: 3,
-      height: 6,
-      width: 6,
+    stepNumber: {
+      fontFamily: fonts.sansBold,
+      fontSize: 11,
+      marginRight: 10,
     },
-    privacyText: {
+    ritualIcon: {
+      alignItems: 'center',
+      borderRadius: 20,
+      height: 42,
+      justifyContent: 'center',
+      width: 42,
+    },
+    ritualCopy: {
       flex: 1,
+      marginLeft: 13,
+    },
+    ritualLabel: {
+      fontFamily: fonts.serifSemibold,
+      fontSize: 23,
+      lineHeight: 26,
+    },
+    ritualDescription: {
       fontSize: 12,
       lineHeight: 18,
+      marginTop: 2,
     },
   });
 }

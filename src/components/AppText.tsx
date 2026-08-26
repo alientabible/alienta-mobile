@@ -4,7 +4,14 @@ import { StyleSheet, Text, type TextProps } from 'react-native';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { fonts, type AppColors } from '@/theme/tokens';
 
-type TextVariant = 'body' | 'caption' | 'eyebrow' | 'heading' | 'hero' | 'serifBody';
+type TextVariant =
+  | 'body'
+  | 'caption'
+  | 'eyebrow'
+  | 'heading'
+  | 'hero'
+  | 'heroItalic'
+  | 'serifBody';
 
 type AppTextProps = PropsWithChildren<
   TextProps & {
@@ -59,6 +66,12 @@ const styles = StyleSheet.create({
   },
   hero: {
     fontFamily: fonts.serifSemibold,
+    fontSize: 44,
+    letterSpacing: -0.7,
+    lineHeight: 52,
+  },
+  heroItalic: {
+    fontFamily: fonts.serifItalic,
     fontSize: 44,
     letterSpacing: -0.7,
     lineHeight: 52,

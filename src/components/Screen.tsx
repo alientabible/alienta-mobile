@@ -39,9 +39,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    alignSelf: 'center',
     flexGrow: 1,
+    maxWidth: 760,
     paddingHorizontal: 24,
     paddingTop: 18,
     paddingBottom: 32,
+    width: '100%',
   },
 });

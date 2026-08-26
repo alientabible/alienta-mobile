@@ -1,16 +1,32 @@
-import { createContext, type PropsWithChildren, useContext, useMemo } from 'react';
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { useColorScheme } from 'react-native';
 
 import { type AppTheme, createAppTheme } from '@/theme/tokens';
 
-const ThemeContext = createContext<AppTheme | null>(null);
+export type ThemeMode = 'system' | 'light' | 'dark';
+
+type ThemeContextValue = AppTheme & {
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
+};
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const systemColorScheme = useColorScheme();
-  const theme = useMemo(
-    () => createAppTheme(systemColorScheme === 'dark' ? 'dark' : 'light'),
-    [systemColorScheme],
-  );
+  const [mode, setMode] = useState<ThemeMode>('system');
+  const effectiveScheme = mode === 'system' ? systemColorScheme : mode;
+  const theme = useMemo<ThemeContextValue>(() => {
+    const appTheme = createAppTheme(effectiveScheme === 'dark' ? 'dark' : 'light');
+
+    return { ...appTheme, mode, setMode };
+  }, [effectiveScheme, mode]);
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

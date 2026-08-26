@@ -40,11 +40,15 @@ export default function TabLayout() {
           fontSize: 12,
         },
         tabBarStyle: {
-          minHeight: 72,
+          minHeight: 76,
           borderTopColor: theme.colors.outline,
           backgroundColor: theme.colors.surface,
-          paddingBottom: 5,
+          paddingBottom: 7,
           paddingTop: 8,
+          shadowColor: theme.colors.shadow,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.05,
+          shadowRadius: 18,
         },
       }}
     >
