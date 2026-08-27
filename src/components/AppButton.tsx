@@ -11,6 +11,7 @@ type AppButtonProps = {
   icon?: AppIconName;
   label: string;
   onPress: () => void;
+  variant?: 'primary' | 'secondary';
 };
 
 export function AppButton({
@@ -19,8 +20,15 @@ export function AppButton({
   icon,
   label,
   onPress,
+  variant = 'primary',
 }: AppButtonProps) {
   const theme = useAppTheme();
+  const isSecondary = variant === 'secondary';
+  const foregroundColor = disabled
+    ? theme.colors.textMuted
+    : isSecondary
+      ? theme.colors.primary
+      : theme.colors.onPrimary;
 
   return (
     <Pressable
@@ -32,27 +40,33 @@ export function AppButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: theme.colors.primary },
+        isSecondary
+          ? {
+              backgroundColor: theme.colors.surfaceElevated,
+              borderColor: theme.colors.primary,
+              borderWidth: 1,
+            }
+          : { backgroundColor: theme.colors.primary },
         disabled && {
           backgroundColor: theme.colors.primarySoft,
           borderColor: theme.colors.outline,
           borderWidth: 1,
         },
         pressed && !disabled && {
-          backgroundColor: theme.colors.primaryPressed,
+          backgroundColor: isSecondary ? theme.colors.primarySoft : theme.colors.primaryPressed,
           transform: [{ scale: 0.985 }],
         },
       ]}
     >
       <View style={styles.content}>
-        <AppText color={disabled ? 'textMuted' : 'onPrimary'} style={styles.label}>
+        <AppText style={[styles.label, { color: foregroundColor }]}>
           {label}
         </AppText>
         {icon ? (
           <AppIcon
             name={icon}
             size={20}
-            tintColor={disabled ? theme.colors.textMuted : theme.colors.onPrimary}
+            tintColor={foregroundColor}
           />
         ) : null}
       </View>
