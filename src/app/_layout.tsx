@@ -30,6 +30,7 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="reflection/[id]" options={{ animation: 'fade' }} />
       </Stack>
     </>
   );

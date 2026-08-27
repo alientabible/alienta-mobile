@@ -1,34 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { AppButton } from '@/components/AppButton';
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
-import { FeelingCard } from '@/components/FeelingCard';
 import { PreviewNotice } from '@/components/PreviewNotice';
 import { ScreenReveal } from '@/components/ScreenReveal';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
+import { CheckInForm } from '@/features/check-in/CheckInForm';
+import type { CheckInInput } from '@/features/check-in/types';
+import { resolveMockReflectionId } from '@/features/reflection/mockReflection';
+import { ReflectionPreparingOverlay } from '@/features/reflection/ReflectionPreparingOverlay';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type AppTheme } from '@/theme/tokens';
-
-type FeelingOption = {
-  id: 'peace' | 'grateful' | 'lonely' | 'hopeful';
-  icon: AppIconName;
-  label: string;
-};
 
 type RitualStep = {
   icon: AppIconName;
@@ -39,37 +33,12 @@ type RitualStep = {
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'home');
-  const { fontScale, width } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [selectedFeeling, setSelectedFeeling] = useState<FeelingOption['id'] | null>(null);
-  const [note, setNote] = useState('');
-  const useSingleColumn = width < 360 || fontScale > 1.35;
-  const canContinue = selectedFeeling !== null || note.trim().length > 0;
-
-  const feelings: FeelingOption[] = [
-    {
-      id: 'peace',
-      icon: { android: 'air', ios: 'wind' },
-      label: t('home.suggestions.peace'),
-    },
-    {
-      id: 'grateful',
-      icon: { android: 'favorite_border', ios: 'heart' },
-      label: t('home.suggestions.grateful'),
-    },
-    {
-      id: 'lonely',
-      icon: { android: 'person_outline', ios: 'person' },
-      label: t('home.suggestions.lonely'),
-    },
-    {
-      id: 'hopeful',
-      icon: { android: 'wb_sunny', ios: 'sun.max' },
-      label: t('home.suggestions.hopeful'),
-    },
-  ];
+  const [isPreparing, setIsPreparing] = useState(false);
+  const navigationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ritualSteps: RitualStep[] = [
     {
@@ -92,9 +61,21 @@ export default function HomeScreen() {
     },
   ];
 
-  const handleContinue = () => {
-    if (!canContinue) return;
-    Alert.alert(t('home.thanksTitle'), t('home.thanksMessage'));
+  useEffect(
+    () => () => {
+      if (navigationTimer.current) clearTimeout(navigationTimer.current);
+    },
+    [],
+  );
+
+  const handleContinue = (input: CheckInInput) => {
+    const reflectionId = resolveMockReflectionId(input);
+    setIsPreparing(true);
+
+    navigationTimer.current = setTimeout(() => {
+      setIsPreparing(false);
+      router.push({ pathname: '/reflection/[id]', params: { id: reflectionId } });
+    }, 680);
   };
 
   return (
@@ -160,61 +141,7 @@ export default function HomeScreen() {
             </AppText>
           </View>
 
-          <View accessibilityRole="radiogroup" style={styles.feelingGrid}>
-            {feelings.map((item) => (
-              <FeelingCard
-                icon={item.icon}
-                key={item.id}
-                label={item.label}
-                onPress={() =>
-                  setSelectedFeeling((current) => (current === item.id ? null : item.id))
-                }
-                selected={selectedFeeling === item.id}
-                style={useSingleColumn ? styles.fullCard : styles.halfCard}
-              />
-            ))}
-          </View>
-
-          <View
-            style={[
-              styles.inputCard,
-              {
-                backgroundColor: theme.colors.surfaceElevated,
-                borderColor: theme.colors.outline,
-              },
-              getPremiumDepth(theme, 'raised'),
-            ]}
-          >
-            <View style={styles.inputHeader}>
-              <AppText style={styles.inputLabel}>{t('home.inputLabel')}</AppText>
-              <AppText color="textMuted" style={styles.characterCount} variant="caption">
-                {note.length}/240
-              </AppText>
-            </View>
-            <TextInput
-              accessibilityLabel={t('home.inputAccessibility')}
-              maxLength={240}
-              multiline
-              onChangeText={setNote}
-              onSubmitEditing={handleContinue}
-              placeholder={t('home.inputPlaceholder')}
-              placeholderTextColor={theme.colors.textMuted}
-              selectionColor={palette.accent}
-              style={[
-                styles.input,
-                { backgroundColor: theme.colors.surface, color: theme.colors.text },
-              ]}
-              textAlignVertical="top"
-              value={note}
-            />
-            <AppButton
-              accessibilityHint={t('home.continueHint')}
-              disabled={!canContinue}
-              icon={{ android: 'arrow_forward', ios: 'arrow.right' }}
-              label={t('home.continue')}
-              onPress={handleContinue}
-            />
-          </View>
+          <CheckInForm onSubmit={handleContinue} />
 
           <PreviewNotice tone="home">{t('home.privacy')}</PreviewNotice>
 
@@ -265,6 +192,7 @@ export default function HomeScreen() {
           </ScreenReveal>
         </ScrollView>
       </KeyboardAvoidingView>
+      <ReflectionPreparingOverlay visible={isPreparing} />
     </SafeAreaView>
   );
 }
@@ -353,47 +281,6 @@ function createStyles(theme: AppTheme) {
     },
     sectionDescription: {
       marginTop: 4,
-    },
-    feelingGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-      marginTop: 18,
-    },
-    halfCard: {
-      flexBasis: '47%',
-      flexGrow: 1,
-    },
-    fullCard: {
-      flexBasis: '100%',
-    },
-    inputCard: {
-      borderRadius: 26,
-      borderWidth: 1,
-      gap: 14,
-      marginTop: 16,
-      padding: 18,
-    },
-    inputHeader: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    inputLabel: {
-      fontFamily: fonts.sansSemibold,
-      fontSize: 15,
-    },
-    characterCount: {
-      fontSize: 12,
-    },
-    input: {
-      borderRadius: 18,
-      fontFamily: fonts.sansRegular,
-      fontSize: 16,
-      lineHeight: 24,
-      minHeight: 116,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
     },
     ritualHeading: {
       marginTop: 38,

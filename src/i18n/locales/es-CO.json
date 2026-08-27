@@ -45,6 +45,34 @@
       }
     }
   },
+  "reflection": {
+    "preparing": "Preparando un momento de calma",
+    "preparingCaption": "Todo ocurre localmente en tu dispositivo.",
+    "back": "Volver",
+    "personalizedLocally": "Una respuesta simulada y local para acompañar este momento.",
+    "reflectionTitle": "Reflexión",
+    "prayerTitle": "Oración",
+    "actionTitle": "Un paso posible",
+    "disclaimer": "Esta reflexión es una demostración local, no usa IA, no guarda tu texto y no reemplaza atención pastoral, psicológica o médica.",
+    "feedbackTitle": "¿Este acompañamiento te resultó útil?",
+    "helpful": "Sí, me ayudó",
+    "notHelpful": "No esta vez",
+    "feedbackSaved": "Gracias. Esta respuesta solo se conserva mientras la pantalla está abierta.",
+    "startAgain": "Compartir cómo me siento de nuevo",
+    "cannotOpenTitle": "No pudimos abrir este recurso",
+    "cannotOpenMessage": "Puedes marcar manualmente el número o abrir el directorio oficial desde tu navegador.",
+    "urgent": {
+      "eyebrow": "Tu seguridad importa",
+      "title": "No tienes que atravesar esto a solas.",
+      "description": "Si estás en peligro inmediato o podrías hacerte daño, busca ayuda humana ahora. Alienta no continuará con una reflexión automática.",
+      "actionTitle": "Da el siguiente paso ahora",
+      "actionDescription": "Llama al 123 si existe peligro inmediato. También puedes intentar la Línea 106 donde esté disponible y permanecer con una persona de confianza.",
+      "call123": "Llamar al 123 — Emergencias",
+      "call106": "Llamar al 106 — Apoyo emocional",
+      "directory": "Ver directorio oficial de ayuda",
+      "disclaimer": "Alienta no es un servicio de emergencias ni sustituye atención profesional. Los recursos mostrados corresponden a Colombia."
+    }
+  },
   "bible": {
     "eyebrow": "Lectura sin ruido",
     "title": "La Palabra, a tu ritmo.",

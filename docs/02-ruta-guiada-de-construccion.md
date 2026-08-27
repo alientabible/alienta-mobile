@@ -131,6 +131,17 @@ Se validarán contraste, texto al 200 %, áreas táctiles y reducir movimiento.
 
 La experiencia se probará antes de conectar IA o guardar datos.
 
+Estado: **completado y listo para validación en dispositivo**.
+
+- permite seleccionar una emoción o describirla en un máximo de 240 caracteres;
+- clasifica el estado localmente y muestra una reflexión simulada, oración y acción concreta;
+- descarta el texto original y solo navega con una categoría general;
+- interrumpe la reflexión automática ante señales explícitas de riesgo y muestra recursos oficiales de Colombia;
+- no usa IA, cuenta de usuario, analítica, base de datos ni almacenamiento local;
+- incluye pruebas del clasificador y compila para web e iOS.
+
+La detección local de riesgo es una protección provisional del prototipo, no un diagnóstico ni el sistema de seguridad definitivo. El Bloque F deberá ampliar y evaluar esta capa antes de conectar IA.
+
 ### Bloque C. Biblia local
 
 - `scripts/import-bible/README.md`

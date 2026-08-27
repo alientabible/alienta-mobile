@@ -4,7 +4,7 @@ Repositorio de trabajo para una aplicación móvil cristiana, accesible y multil
 
 ## Estado
 
-La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. La integración con Biblia, IA y Supabase se añadirá por fases.
+La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ya ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La integración con Biblia, IA y Supabase se añadirá por fases.
 
 ## Documentación
 
@@ -22,7 +22,7 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye c
 
 ## Siguiente hito
 
-Validar el sistema visual en iPhone y web; después implementar el flujo local completo de reflexión antes de conectar servicios externos.
+Construir la Biblia local con una fuente y licencia verificadas, sin conectar todavía IA ni Supabase.
 
 ## Desarrollo local
 
@@ -42,6 +42,7 @@ npm start
 npm run web
 npm run lint
 npm run typecheck
+npm test
 ```
 
 ## Flujo de Git
