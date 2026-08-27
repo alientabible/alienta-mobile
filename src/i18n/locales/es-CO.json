@@ -128,6 +128,8 @@
       "increaseText": "Aumentar tamaño del texto bíblico",
       "addFavorite": "Guardar versículo {{verse}} como favorito",
       "removeFavorite": "Quitar versículo {{verse}} de favoritos",
+      "verseNumber": "Versículo {{verse}}",
+      "markReadingHint": "Marca este versículo como tu punto de lectura",
       "previousChapter": "Ir al capítulo anterior",
       "nextChapter": "Ir al capítulo siguiente",
       "previous": "Anterior",

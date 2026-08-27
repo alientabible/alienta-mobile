@@ -9,6 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type ViewToken,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +46,12 @@ type BibleReaderProps = {
 
 type PickerStep = 'book' | 'chapter';
 
+const READING_PROGRESS_SAVE_DELAY_MS = 450;
+const READING_VIEWABILITY_CONFIG = {
+  itemVisiblePercentThreshold: 55,
+  minimumViewTime: 220,
+};
+
 export function BibleReader({
   initialBookId = 'PSA',
   initialChapter = 23,
@@ -57,6 +64,15 @@ export function BibleReader({
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
   const listRef = useRef<FlatList<BibleVerse>>(null);
+  const initialTargetRef = useRef({
+    bookId: initialBookId,
+    chapter: Math.max(1, initialChapter),
+    verse: initialVerse,
+    versionId: initialVersionId,
+  });
+  const initialTargetPendingRef = useRef(true);
+  const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeVerseRef = useRef(initialVerse ?? 1);
   const [translations, setTranslations] = useState<BibleTranslation[]>([]);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [versionId, setVersionId] = useState<BibleVersionId>(initialVersionId);
@@ -64,6 +80,7 @@ export function BibleReader({
   const [chapter, setChapter] = useState(Math.max(1, initialChapter));
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [favoriteKeys, setFavoriteKeys] = useState<Set<string>>(new Set());
+  const [activeVerse, setActiveVerse] = useState(initialVerse ?? 1);
   const [textScale, setTextScale] = useState(1);
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -77,6 +94,68 @@ export function BibleReader({
     () => translations.find((translation) => translation.id === versionId) ?? null,
     [translations, versionId],
   );
+  const displayedChapter = selectedBook
+    ? Math.min(Math.max(chapter, 1), selectedBook.chapters)
+    : chapter;
+
+  const cancelPendingProgressSave = useCallback(() => {
+    if (!progressSaveTimerRef.current) return;
+    clearTimeout(progressSaveTimerRef.current);
+    progressSaveTimerRef.current = null;
+  }, []);
+
+  const persistReadingProgress = useCallback(
+    (verse: number, immediate = false) => {
+      cancelPendingProgressSave();
+      const location = { bookId, chapter: displayedChapter, versionId };
+      const save = () => {
+        progressSaveTimerRef.current = null;
+        void saveLastReading(database, { ...location, verse });
+      };
+
+      if (immediate) {
+        save();
+        return;
+      }
+      progressSaveTimerRef.current = setTimeout(save, READING_PROGRESS_SAVE_DELAY_MS);
+    },
+    [bookId, cancelPendingProgressSave, database, displayedChapter, versionId],
+  );
+
+  const markReadingVerse = useCallback(
+    (verse: number, immediate = false) => {
+      const changed = activeVerseRef.current !== verse;
+      if (changed) {
+        activeVerseRef.current = verse;
+        setActiveVerse(verse);
+      }
+      if (!changed && !immediate) return;
+      persistReadingProgress(verse, immediate);
+    },
+    [persistReadingProgress],
+  );
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<BibleVerse>[] }) => {
+      if (loading) return;
+      const firstVisibleVerse = viewableItems.find(
+        (token) => token.isViewable && token.item,
+      )?.item;
+      if (firstVisibleVerse) {
+        markReadingVerse(firstVisibleVerse.verse);
+      }
+    },
+    [loading, markReadingVerse],
+  );
+
+  const preparePassageChange = useCallback(() => {
+    initialTargetPendingRef.current = false;
+    cancelPendingProgressSave();
+    setLoading(true);
+    activeVerseRef.current = 1;
+    setActiveVerse(1);
+    listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+  }, [cancelPendingProgressSave]);
 
   useEffect(() => {
     let active = true;
@@ -96,54 +175,82 @@ export function BibleReader({
   useEffect(() => {
     if (!selectedBook) return;
     const safeChapter = Math.min(Math.max(chapter, 1), selectedBook.chapters);
+    const initialTarget = initialTargetRef.current;
+    const useInitialVerse =
+      initialTargetPendingRef.current &&
+      initialTarget.versionId === versionId &&
+      initialTarget.bookId === bookId &&
+      initialTarget.chapter === safeChapter;
     let active = true;
+    let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+    cancelPendingProgressSave();
+    listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+
     void getChapter(database, versionId, bookId, safeChapter).then(async (chapterVerses) => {
       const favorites = await getFavoriteKeys(database, chapterVerses.map((verse) => verse.key));
       if (!active) return;
+      const requestedVerse = useInitialVerse ? initialTarget.verse : 1;
+      const nextActiveVerse = chapterVerses.some((verse) => verse.verse === requestedVerse)
+        ? (requestedVerse ?? 1)
+        : (chapterVerses[0]?.verse ?? 1);
+
+      activeVerseRef.current = nextActiveVerse;
+      setActiveVerse(nextActiveVerse);
       setVerses(chapterVerses);
       setFavoriteKeys(favorites);
       setLoading(false);
+      if (useInitialVerse) initialTargetPendingRef.current = false;
       await saveLastReading(database, {
         versionId,
         bookId,
         chapter: safeChapter,
-        verse: initialVerse,
+        verse: nextActiveVerse,
       });
+
+      scrollTimer = setTimeout(() => {
+        if (!active) return;
+        const index = chapterVerses.findIndex((verse) => verse.verse === nextActiveVerse);
+        if (index <= 0) {
+          listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+          return;
+        }
+        listRef.current?.scrollToIndex({ animated: false, index, viewPosition: 0.25 });
+      }, 120);
     });
     return () => {
       active = false;
+      if (scrollTimer) clearTimeout(scrollTimer);
     };
-  }, [bookId, chapter, database, initialVerse, selectedBook, versionId]);
+  }, [bookId, cancelPendingProgressSave, chapter, database, selectedBook, versionId]);
 
-  useEffect(() => {
-    if (!initialVerse || loading || verses.length === 0) return;
-    const index = verses.findIndex((verse) => verse.verse === initialVerse);
-    if (index < 0) return;
-    const timer = setTimeout(() => {
-      listRef.current?.scrollToIndex({ animated: true, index, viewPosition: 0.25 });
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [initialVerse, loading, verses]);
+  useEffect(
+    () => () => {
+      cancelPendingProgressSave();
+    },
+    [cancelPendingProgressSave],
+  );
 
   const moveChapter = useCallback(
     (direction: -1 | 1) => {
       if (!selectedBook) return;
-      setLoading(true);
       if (direction === -1 && chapter > 1) {
+        preparePassageChange();
         setChapter((current) => current - 1);
         return;
       }
       if (direction === 1 && chapter < selectedBook.chapters) {
+        preparePassageChange();
         setChapter((current) => current + 1);
         return;
       }
       const currentIndex = books.findIndex((book) => book.id === bookId);
       const nextBook = books[currentIndex + direction];
       if (!nextBook) return;
+      preparePassageChange();
       setBookId(nextBook.id);
       setChapter(direction === 1 ? 1 : nextBook.chapters);
     },
-    [bookId, books, chapter, selectedBook],
+    [bookId, books, chapter, preparePassageChange, selectedBook],
   );
 
   const changeTextScale = useCallback(
@@ -173,9 +280,6 @@ export function BibleReader({
     setPickerOpen(true);
   }, []);
 
-  const displayedChapter = selectedBook
-    ? Math.min(Math.max(chapter, 1), selectedBook.chapters)
-    : chapter;
   const referenceLabel = selectedBook
     ? `${selectedBook.nameEs} ${displayedChapter}`
     : t('bible.reader.loading');
@@ -183,12 +287,18 @@ export function BibleReader({
   const renderVerse = useCallback(
     ({ item }: { item: BibleVerse }) => {
       const favorite = favoriteKeys.has(item.key);
-      const highlighted = initialVerse === item.verse;
+      const highlighted = activeVerse === item.verse;
       return (
-        <View
-          style={[
+        <Pressable
+          accessibilityHint={t('bible.reader.markReadingHint')}
+          accessibilityLabel={t('bible.reader.verseNumber', { verse: item.verse })}
+          accessibilityRole="button"
+          accessibilityState={{ selected: highlighted }}
+          onPress={() => markReadingVerse(item.verse, true)}
+          style={({ pressed }) => [
             styles.verseRow,
             highlighted && { backgroundColor: palette.soft, borderColor: palette.accent },
+            pressed && styles.versePressed,
           ]}
         >
           <AppText style={[styles.verseNumber, { color: palette.accent }]}>{item.verse}</AppText>
@@ -210,7 +320,10 @@ export function BibleReader({
             accessibilityRole="button"
             accessibilityState={{ selected: favorite }}
             hitSlop={8}
-            onPress={() => void handleFavorite(item.key)}
+            onPress={(event) => {
+              event.stopPropagation();
+              void handleFavorite(item.key);
+            }}
             style={({ pressed }) => [styles.favoriteButton, pressed && styles.pressed]}
           >
             <AppIcon
@@ -223,10 +336,19 @@ export function BibleReader({
               type="monochrome"
             />
           </Pressable>
-        </View>
+        </Pressable>
       );
     },
-    [favoriteKeys, handleFavorite, initialVerse, palette, t, textScale, theme.colors.textMuted],
+    [
+      activeVerse,
+      favoriteKeys,
+      handleFavorite,
+      markReadingVerse,
+      palette,
+      t,
+      textScale,
+      theme.colors.textMuted,
+    ],
   );
 
   return (
@@ -234,7 +356,12 @@ export function BibleReader({
       <FlatList
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator color={palette.accent} size="large" style={styles.loader} />
+            <View style={styles.loadingState}>
+              <ActivityIndicator color={palette.accent} size="large" />
+              <AppText color="textMuted" variant="caption">
+                {t('bible.reader.loading')}
+              </AppText>
+            </View>
           ) : null
         }
         ListFooterComponent={
@@ -329,7 +456,7 @@ export function BibleReader({
             >
               <BibleVersionSwitch
                 onChange={(nextVersionId) => {
-                  setLoading(true);
+                  preparePassageChange();
                   setVersionId(nextVersionId);
                 }}
                 selectedId={versionId}
@@ -403,13 +530,18 @@ export function BibleReader({
         }
         contentContainerStyle={styles.content}
         data={loading ? [] : verses}
-        extraData={favoriteKeys}
+        extraData={{ activeVerse, favoriteKeys }}
         keyExtractor={(item) => item.key}
+        onViewableItemsChanged={onViewableItemsChanged}
         ref={listRef}
         renderItem={renderVerse}
         showsVerticalScrollIndicator={false}
-        onScrollToIndexFailed={({ index }) => {
-          listRef.current?.scrollToOffset({ animated: true, offset: Math.max(index * 86, 0) });
+        viewabilityConfig={READING_VIEWABILITY_CONFIG}
+        onScrollToIndexFailed={({ averageItemLength, index }) => {
+          listRef.current?.scrollToOffset({
+            animated: false,
+            offset: Math.max(averageItemLength * index, 0),
+          });
         }}
       />
 
@@ -468,7 +600,9 @@ export function BibleReader({
                         book={book}
                         key={book.id}
                         onPress={() => {
-                          setLoading(true);
+                          if (book.id !== bookId || displayedChapter !== 1) {
+                            preparePassageChange();
+                          }
                           setBookId(book.id);
                           setChapter(1);
                           setPickerStep('chapter');
@@ -486,7 +620,9 @@ export function BibleReader({
                         book={book}
                         key={book.id}
                         onPress={() => {
-                          setLoading(true);
+                          if (book.id !== bookId || displayedChapter !== 1) {
+                            preparePassageChange();
+                          }
                           setBookId(book.id);
                           setChapter(1);
                           setPickerStep('chapter');
@@ -505,9 +641,14 @@ export function BibleReader({
                         accessibilityRole="button"
                         key={chapterNumber}
                         onPress={() => {
-                          setLoading(true);
-                          setChapter(chapterNumber);
                           setPickerOpen(false);
+                          if (chapterNumber === displayedChapter) {
+                            listRef.current?.scrollToOffset({ animated: true, offset: 0 });
+                            markReadingVerse(1, true);
+                            return;
+                          }
+                          preparePassageChange();
+                          setChapter(chapterNumber);
                         }}
                         style={({ pressed }) => [
                           styles.chapterChoice,
@@ -649,6 +790,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   verseText: { flex: 1, fontFamily: fonts.serifMedium },
+  versePressed: { opacity: 0.82 },
   favoriteButton: {
     alignItems: 'center',
     height: 40,
@@ -656,7 +798,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     width: 34,
   },
-  loader: { marginVertical: 80 },
+  loadingState: { alignItems: 'center', gap: 14, marginVertical: 80 },
   footer: { paddingTop: 32 },
   chapterActions: { flexDirection: 'row', gap: 10 },
   chapterButton: {
