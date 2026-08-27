@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
@@ -10,6 +10,7 @@ type EditorialActionCardProps = {
   description: string;
   icon: AppIconName;
   meta?: string;
+  onPress?: () => void;
   title: string;
   tone: SectionTone;
 };
@@ -18,6 +19,7 @@ export function EditorialActionCard({
   description,
   icon,
   meta,
+  onPress,
   title,
   tone,
 }: EditorialActionCardProps) {
@@ -25,14 +27,19 @@ export function EditorialActionCard({
   const palette = getSectionPalette(theme, tone);
 
   return (
-    <View
-      style={[
+    <Pressable
+      accessibilityLabel={onPress ? title : undefined}
+      accessibilityRole={onPress ? 'button' : undefined}
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [
         styles.card,
         {
           backgroundColor: theme.colors.surfaceElevated,
           borderColor: theme.colors.outline,
         },
         getPremiumDepth(theme, 'raised'),
+        pressed && onPress ? styles.pressed : null,
       ]}
     >
       <View style={[styles.iconWell, { backgroundColor: palette.soft }]}>
@@ -57,7 +64,7 @@ export function EditorialActionCard({
         tintColor={theme.colors.textMuted}
         type="monochrome"
       />
-    </View>
+    </Pressable>
   );
 }
 
@@ -69,6 +76,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     minHeight: 112,
     padding: 15,
+  },
+  pressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.99 }],
   },
   iconWell: {
     alignItems: 'center',

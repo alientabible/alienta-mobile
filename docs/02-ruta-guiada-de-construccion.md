@@ -155,6 +155,17 @@ La detección local de riesgo es una protección provisional del prototipo, no u
 
 El importador validará versículos, capítulos, canon, licencia y hash. No se copiará un archivo bíblico de un repositorio no verificado.
 
+Estado: **completado y listo para validación en dispositivo**.
+
+- empaqueta RVR1909 y World English Bible Protestant Edition desde las fuentes oficiales de eBible.org;
+- conserva manifiestos, instantáneas de licencia y SHA-256 de cada fuente;
+- incluye exactamente 66 libros, 1.189 capítulos y 62.205 registros de versículos;
+- permite seleccionar traducción, navegar por libro y capítulo, buscar palabras o referencias, guardar favoritos, recordar la última lectura y ajustar el tamaño del texto;
+- funciona sin conexión mediante SQLite en iOS y Android, con soporte configurado para la preview web;
+- muestra dentro de la app la procedencia, licencia, canon y huella de cada traducción;
+- mantiene el texto bíblico separado de las reflexiones locales y de cualquier contenido futuro generado con IA;
+- incluye pruebas del canon, importador, licencias, base empaquetada, búsquedas y hash final.
+
 ### Bloque D. Compartir
 
 - `src/features/sharing/ShareCard.tsx`
