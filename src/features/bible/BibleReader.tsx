@@ -32,6 +32,7 @@ import type {
   BibleTranslation,
   BibleVerse,
   BibleVersionId,
+  ReadingLocation,
 } from '@/features/bible/types';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
@@ -73,6 +74,14 @@ export function BibleReader({
   const initialTargetPendingRef = useRef(true);
   const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeVerseRef = useRef(initialVerse ?? 1);
+  const loadingRef = useRef(true);
+  const latestReadingRef = useRef<ReadingLocation>({
+    bookId: initialBookId,
+    chapter: Math.max(1, initialChapter),
+    verse: initialVerse ?? 1,
+    versionId: initialVersionId,
+  });
+  const markReadingVerseRef = useRef<(verse: number) => void>(() => undefined);
   const [translations, setTranslations] = useState<BibleTranslation[]>([]);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [versionId, setVersionId] = useState<BibleVersionId>(initialVersionId);
@@ -107,10 +116,11 @@ export function BibleReader({
   const persistReadingProgress = useCallback(
     (verse: number, immediate = false) => {
       cancelPendingProgressSave();
-      const location = { bookId, chapter: displayedChapter, versionId };
+      const location = { bookId, chapter: displayedChapter, verse, versionId };
+      latestReadingRef.current = location;
       const save = () => {
         progressSaveTimerRef.current = null;
-        void saveLastReading(database, { ...location, verse });
+        void saveLastReading(database, location);
       };
 
       if (immediate) {
@@ -135,17 +145,24 @@ export function BibleReader({
     [persistReadingProgress],
   );
 
-  const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<BibleVerse>[] }) => {
-      if (loading) return;
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    markReadingVerseRef.current = markReadingVerse;
+  }, [markReadingVerse]);
+
+  const [onViewableItemsChanged] = useState(
+    () => ({ viewableItems }: { viewableItems: ViewToken<BibleVerse>[] }) => {
+      if (loadingRef.current) return;
       const firstVisibleVerse = viewableItems.find(
         (token) => token.isViewable && token.item,
       )?.item;
       if (firstVisibleVerse) {
-        markReadingVerse(firstVisibleVerse.verse);
+        markReadingVerseRef.current(firstVisibleVerse.verse);
       }
     },
-    [loading, markReadingVerse],
   );
 
   const preparePassageChange = useCallback(() => {
@@ -195,6 +212,12 @@ export function BibleReader({
         : (chapterVerses[0]?.verse ?? 1);
 
       activeVerseRef.current = nextActiveVerse;
+      latestReadingRef.current = {
+        versionId,
+        bookId,
+        chapter: safeChapter,
+        verse: nextActiveVerse,
+      };
       setActiveVerse(nextActiveVerse);
       setVerses(chapterVerses);
       setFavoriteKeys(favorites);
@@ -223,12 +246,12 @@ export function BibleReader({
     };
   }, [bookId, cancelPendingProgressSave, chapter, database, selectedBook, versionId]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    return () => {
       cancelPendingProgressSave();
-    },
-    [cancelPendingProgressSave],
-  );
+      void saveLastReading(database, latestReadingRef.current);
+    };
+  }, [cancelPendingProgressSave, database]);
 
   const moveChapter = useCallback(
     (direction: -1 | 1) => {
@@ -289,28 +312,31 @@ export function BibleReader({
       const favorite = favoriteKeys.has(item.key);
       const highlighted = activeVerse === item.verse;
       return (
-        <Pressable
-          accessibilityHint={t('bible.reader.markReadingHint')}
-          accessibilityLabel={t('bible.reader.verseNumber', { verse: item.verse })}
-          accessibilityRole="button"
-          accessibilityState={{ selected: highlighted }}
-          onPress={() => markReadingVerse(item.verse, true)}
-          style={({ pressed }) => [
+        <View
+          style={[
             styles.verseRow,
             highlighted && { backgroundColor: palette.soft, borderColor: palette.accent },
-            pressed && styles.versePressed,
           ]}
         >
-          <AppText style={[styles.verseNumber, { color: palette.accent }]}>{item.verse}</AppText>
-          <AppText
-            selectable
-            style={[
-              styles.verseText,
-              { fontSize: 21 * textScale, lineHeight: 31 * textScale },
-            ]}
+          <Pressable
+            accessibilityHint={t('bible.reader.markReadingHint')}
+            accessibilityLabel={t('bible.reader.verseNumber', { verse: item.verse })}
+            accessibilityRole="button"
+            accessibilityState={{ selected: highlighted }}
+            onPress={() => markReadingVerse(item.verse, true)}
+            style={({ pressed }) => [styles.verseReadingButton, pressed && styles.versePressed]}
           >
-            {item.text}
-          </AppText>
+            <AppText style={[styles.verseNumber, { color: palette.accent }]}>{item.verse}</AppText>
+            <AppText
+              selectable
+              style={[
+                styles.verseText,
+                { fontSize: 21 * textScale, lineHeight: 31 * textScale },
+              ]}
+            >
+              {item.text}
+            </AppText>
+          </Pressable>
           <Pressable
             accessibilityLabel={
               favorite
@@ -320,10 +346,7 @@ export function BibleReader({
             accessibilityRole="button"
             accessibilityState={{ selected: favorite }}
             hitSlop={8}
-            onPress={(event) => {
-              event.stopPropagation();
-              void handleFavorite(item.key);
-            }}
+            onPress={() => void handleFavorite(item.key)}
             style={({ pressed }) => [styles.favoriteButton, pressed && styles.pressed]}
           >
             <AppIcon
@@ -336,7 +359,7 @@ export function BibleReader({
               type="monochrome"
             />
           </Pressable>
-        </Pressable>
+        </View>
       );
     },
     [
@@ -780,6 +803,11 @@ const styles = StyleSheet.create({
     marginHorizontal: -10,
     paddingHorizontal: 10,
     paddingVertical: 10,
+  },
+  verseReadingButton: {
+    alignItems: 'flex-start',
+    flex: 1,
+    flexDirection: 'row',
   },
   verseNumber: {
     fontFamily: fonts.sansBold,

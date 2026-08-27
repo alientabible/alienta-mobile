@@ -1,6 +1,6 @@
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -38,24 +38,26 @@ export default function BibleScreen() {
   const [lastBook, setLastBook] = useState<BibleBook | null>(null);
   const [translations, setTranslations] = useState<BibleTranslation[]>([]);
 
-  useEffect(() => {
-    let active = true;
-    void Promise.all([
-      getVerse(database, 'rvr1909', 'PSA', 46, 10),
-      getLastReading(database),
-      getTranslations(database),
-    ]).then(async ([verse, reading, availableTranslations]) => {
-      const book = await getBook(database, reading.bookId);
-      if (!active) return;
-      setDailyVerse(verse);
-      setLastReading(reading);
-      setLastBook(book);
-      setTranslations(availableTranslations);
-    });
-    return () => {
-      active = false;
-    };
-  }, [database]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void Promise.all([
+        getVerse(database, 'rvr1909', 'PSA', 46, 10),
+        getLastReading(database),
+        getTranslations(database),
+      ]).then(async ([verse, reading, availableTranslations]) => {
+        const book = await getBook(database, reading.bookId);
+        if (!active) return;
+        setDailyVerse(verse);
+        setLastReading(reading);
+        setLastBook(book);
+        setTranslations(availableTranslations);
+      });
+      return () => {
+        active = false;
+      };
+    }, [database]),
+  );
 
   const continueTitle = lastBook && lastReading
     ? `${lastBook.nameEs} ${lastReading.chapter}`
