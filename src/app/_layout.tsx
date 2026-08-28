@@ -18,6 +18,12 @@ import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
 
+const bibleRouteOptions = {
+  animation: 'fade_from_bottom' as const,
+  animationDuration: 320,
+  gestureEnabled: true,
+};
+
 function RootNavigator() {
   const theme = useAppTheme();
 
@@ -31,9 +37,9 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="bible/reader" options={{ animation: 'fade' }} />
-        <Stack.Screen name="bible/search" options={{ animation: 'fade' }} />
-        <Stack.Screen name="bible/sources" options={{ animation: 'fade' }} />
+        <Stack.Screen name="bible/reader" options={bibleRouteOptions} />
+        <Stack.Screen name="bible/search" options={bibleRouteOptions} />
+        <Stack.Screen name="bible/sources" options={bibleRouteOptions} />
         <Stack.Screen name="reflection/[id]" options={{ animation: 'fade' }} />
       </Stack>
     </>

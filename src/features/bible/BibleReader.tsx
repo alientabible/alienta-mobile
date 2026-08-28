@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -52,6 +53,7 @@ const READING_VIEWABILITY_CONFIG = {
   itemVisiblePercentThreshold: 55,
   minimumViewTime: 220,
 };
+const WEB_READING_LINE_RATIO = 0.32;
 
 export function BibleReader({
   initialBookId = 'PSA',
@@ -164,6 +166,75 @@ export function BibleReader({
       }
     },
   );
+
+  useEffect(() => {
+    if (
+      Platform.OS !== 'web' ||
+      loading ||
+      verses.length === 0 ||
+      typeof document === 'undefined' ||
+      typeof window === 'undefined' ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
+      return;
+    }
+
+    let observer: IntersectionObserver | null = null;
+    let measurementFrame: number | null = null;
+
+    const measureReadingPosition = () => {
+      measurementFrame = null;
+      const readingLine = window.innerHeight * WEB_READING_LINE_RATIO;
+      let closestVerse: { distance: number; verse: number } | null = null;
+
+      for (const verse of verses) {
+        const element = document.getElementById(`bible-verse-${verse.verse}`);
+        if (!element) continue;
+        const bounds = element.getBoundingClientRect();
+        if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) continue;
+
+        const crossesReadingLine = bounds.top <= readingLine && bounds.bottom >= readingLine;
+        const distance = crossesReadingLine
+          ? 0
+          : Math.min(Math.abs(bounds.top - readingLine), Math.abs(bounds.bottom - readingLine));
+
+        if (!closestVerse || distance < closestVerse.distance) {
+          closestVerse = { distance, verse: verse.verse };
+        }
+      }
+
+      if (closestVerse) {
+        markReadingVerseRef.current(closestVerse.verse);
+      }
+    };
+
+    const queueReadingPositionMeasurement = () => {
+      if (measurementFrame !== null) window.cancelAnimationFrame(measurementFrame);
+      measurementFrame = window.requestAnimationFrame(measureReadingPosition);
+    };
+
+    const setupFrame = window.requestAnimationFrame(() => {
+      const verseElements = verses
+        .map((verse) => document.getElementById(`bible-verse-${verse.verse}`))
+        .filter((element): element is HTMLElement => element !== null);
+
+      if (verseElements.length === 0) return;
+
+      observer = new IntersectionObserver(queueReadingPositionMeasurement, {
+        root: null,
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: [0, 0.01],
+      });
+      verseElements.forEach((element) => observer?.observe(element));
+      measureReadingPosition();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(setupFrame);
+      if (measurementFrame !== null) window.cancelAnimationFrame(measurementFrame);
+      observer?.disconnect();
+    };
+  }, [loading, verses]);
 
   const preparePassageChange = useCallback(() => {
     initialTargetPendingRef.current = false;
@@ -313,6 +384,7 @@ export function BibleReader({
       const highlighted = activeVerse === item.verse;
       return (
         <View
+          nativeID={`bible-verse-${item.verse}`}
           style={[
             styles.verseRow,
             highlighted && { backgroundColor: palette.soft, borderColor: palette.accent },
@@ -377,6 +449,7 @@ export function BibleReader({
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <FlatList
+        key={`${Platform.OS}-${versionId}-${bookId}-${displayedChapter}-${loading ? 'loading' : 'ready'}`}
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingState}>
@@ -554,12 +627,16 @@ export function BibleReader({
         contentContainerStyle={styles.content}
         data={loading ? [] : verses}
         extraData={{ activeVerse, favoriteKeys }}
+        initialNumToRender={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
         keyExtractor={(item) => item.key}
-        onViewableItemsChanged={onViewableItemsChanged}
+        maxToRenderPerBatch={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
+        onViewableItemsChanged={Platform.OS === 'web' ? undefined : onViewableItemsChanged}
         ref={listRef}
+        removeClippedSubviews={false}
         renderItem={renderVerse}
         showsVerticalScrollIndicator={false}
-        viewabilityConfig={READING_VIEWABILITY_CONFIG}
+        viewabilityConfig={Platform.OS === 'web' ? undefined : READING_VIEWABILITY_CONFIG}
+        windowSize={Platform.OS === 'web' ? 201 : 21}
         onScrollToIndexFailed={({ averageItemLength, index }) => {
           listRef.current?.scrollToOffset({
             animated: false,
