@@ -19,9 +19,9 @@ import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 void SplashScreen.preventAutoHideAsync();
 
 const bibleRouteOptions = {
-  animation: 'fade_from_bottom' as const,
-  animationDuration: 320,
+  animation: 'slide_from_right' as const,
   gestureEnabled: true,
+  presentation: 'card' as const,
 };
 
 function RootNavigator() {
