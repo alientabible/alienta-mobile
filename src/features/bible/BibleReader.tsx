@@ -79,6 +79,12 @@ export function BibleReader({
     versionId: initialVersionId,
   });
   const initialTargetPendingRef = useRef(true);
+  const initialPositionPendingRef = useRef(initialVerse !== null);
+  const initialPositionIndexRef = useRef<number | null>(null);
+  const initialPositionVerseRef = useRef(initialVerse);
+  const initialPositionFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialPositionRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completeInitialPositionRef = useRef<() => void>(() => undefined);
   const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const manualSelectionLockedRef = useRef(initialVerse !== null);
   const programmaticScrollUntilRef = useRef(
@@ -104,6 +110,7 @@ export function BibleReader({
   const [activeVerse, setActiveVerse] = useState(initialVerse ?? 1);
   const [textScale, setTextScale] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [initialPositionReady, setInitialPositionReady] = useState(initialVerse === null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerStep, setPickerStep] = useState<PickerStep>('book');
 
@@ -124,6 +131,26 @@ export function BibleReader({
     clearTimeout(progressSaveTimerRef.current);
     progressSaveTimerRef.current = null;
   }, []);
+
+  const completeInitialPosition = useCallback(() => {
+    if (!initialPositionPendingRef.current) return;
+    initialPositionPendingRef.current = false;
+    initialPositionIndexRef.current = null;
+    initialPositionVerseRef.current = null;
+    if (initialPositionFallbackTimerRef.current) {
+      clearTimeout(initialPositionFallbackTimerRef.current);
+      initialPositionFallbackTimerRef.current = null;
+    }
+    if (initialPositionRetryTimerRef.current) {
+      clearTimeout(initialPositionRetryTimerRef.current);
+      initialPositionRetryTimerRef.current = null;
+    }
+    setInitialPositionReady(true);
+  }, []);
+
+  useEffect(() => {
+    completeInitialPositionRef.current = completeInitialPosition;
+  }, [completeInitialPosition]);
 
   const persistReadingProgress = useCallback(
     (verse: number, immediate = false) => {
@@ -167,6 +194,16 @@ export function BibleReader({
 
   const [onViewableItemsChanged] = useState(
     () => ({ viewableItems }: { viewableItems: ViewToken<BibleVerse>[] }) => {
+      const initialVerseTarget = initialPositionVerseRef.current;
+      if (
+        initialPositionPendingRef.current &&
+        initialVerseTarget !== null &&
+        viewableItems.some(
+          (token) => token.isViewable && token.item?.verse === initialVerseTarget,
+        )
+      ) {
+        completeInitialPositionRef.current();
+      }
       if (loadingRef.current || manualSelectionLockedRef.current) return;
       const firstVisibleVerse = viewableItems.find(
         (token) => token.isViewable && token.item,
@@ -176,6 +213,31 @@ export function BibleReader({
       }
     },
   );
+
+  const positionInitialVerse = useCallback(() => {
+    if (!initialPositionPendingRef.current || loadingRef.current) return;
+    const index = initialPositionIndexRef.current;
+    const verse = initialPositionVerseRef.current;
+    if (index === null || verse === null) return;
+
+    programmaticScrollUntilRef.current = Date.now() + PROGRAMMATIC_SCROLL_SETTLE_MS;
+
+    if (index <= 0) {
+      listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+      completeInitialPositionRef.current();
+      return;
+    }
+
+    if (Platform.OS === 'web' && typeof document !== 'undefined' && typeof window !== 'undefined') {
+      const element = document.getElementById(`bible-verse-${verse}`);
+      if (!element) return;
+      element.scrollIntoView({ behavior: 'auto', block: 'center' });
+      window.requestAnimationFrame(() => completeInitialPositionRef.current());
+      return;
+    }
+
+    listRef.current?.scrollToIndex({ animated: false, index, viewPosition: 0.32 });
+  }, []);
 
   const releaseManualSelection = useCallback(() => {
     if (!manualSelectionLockedRef.current) return;
@@ -287,6 +349,7 @@ export function BibleReader({
     manualSelectionLockedRef.current = false;
     programmaticScrollUntilRef.current = Date.now() + PROGRAMMATIC_SCROLL_SETTLE_MS;
     cancelPendingProgressSave();
+    loadingRef.current = true;
     setLoading(true);
     activeVerseRef.current = 1;
     setActiveVerse(1);
@@ -318,7 +381,6 @@ export function BibleReader({
       initialTarget.bookId === bookId &&
       initialTarget.chapter === safeChapter;
     let active = true;
-    let scrollTimer: ReturnType<typeof setTimeout> | null = null;
     cancelPendingProgressSave();
     listRef.current?.scrollToOffset({ animated: false, offset: 0 });
 
@@ -332,6 +394,22 @@ export function BibleReader({
 
       activeVerseRef.current = nextActiveVerse;
       manualSelectionLockedRef.current = useInitialVerse && initialTarget.verse !== null;
+      if (useInitialVerse && initialTarget.verse !== null) {
+        initialPositionIndexRef.current = Math.max(
+          chapterVerses.findIndex((verse) => verse.verse === nextActiveVerse),
+          0,
+        );
+        initialPositionVerseRef.current = nextActiveVerse;
+        if (initialPositionFallbackTimerRef.current) {
+          clearTimeout(initialPositionFallbackTimerRef.current);
+        }
+        initialPositionFallbackTimerRef.current = setTimeout(
+          () => completeInitialPositionRef.current(),
+          1400,
+        );
+      } else if (initialPositionPendingRef.current) {
+        completeInitialPositionRef.current();
+      }
       latestReadingRef.current = {
         versionId,
         bookId,
@@ -341,6 +419,7 @@ export function BibleReader({
       setActiveVerse(nextActiveVerse);
       setVerses(chapterVerses);
       setFavoriteKeys(favorites);
+      loadingRef.current = false;
       setLoading(false);
       if (useInitialVerse) initialTargetPendingRef.current = false;
       await saveLastReading(database, {
@@ -350,26 +429,21 @@ export function BibleReader({
         verse: nextActiveVerse,
       });
 
-      scrollTimer = setTimeout(() => {
-        if (!active) return;
-        programmaticScrollUntilRef.current = Date.now() + PROGRAMMATIC_SCROLL_SETTLE_MS;
-        const index = chapterVerses.findIndex((verse) => verse.verse === nextActiveVerse);
-        if (index <= 0) {
-          listRef.current?.scrollToOffset({ animated: false, offset: 0 });
-          return;
-        }
-        listRef.current?.scrollToIndex({ animated: false, index, viewPosition: 0.25 });
-      }, 120);
     });
     return () => {
       active = false;
-      if (scrollTimer) clearTimeout(scrollTimer);
     };
   }, [bookId, cancelPendingProgressSave, chapter, database, selectedBook, versionId]);
 
   useEffect(() => {
     return () => {
       cancelPendingProgressSave();
+      if (initialPositionFallbackTimerRef.current) {
+        clearTimeout(initialPositionFallbackTimerRef.current);
+      }
+      if (initialPositionRetryTimerRef.current) {
+        clearTimeout(initialPositionRetryTimerRef.current);
+      }
       void saveLastReading(database, latestReadingRef.current);
     };
   }, [cancelPendingProgressSave, database]);
@@ -623,9 +697,12 @@ export function BibleReader({
         contentContainerStyle={styles.content}
         data={loading ? [] : verses}
         extraData={{ activeVerse, favoriteKeys }}
-        initialNumToRender={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
+        initialNumToRender={
+          Platform.OS === 'web' || !initialPositionReady ? Math.max(verses.length, 1) : 12
+        }
         keyExtractor={(item) => item.key}
         maxToRenderPerBatch={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
+        onContentSizeChange={positionInitialVerse}
         onMomentumScrollBegin={releaseManualSelection}
         onScroll={handleReaderScroll}
         onScrollBeginDrag={releaseManualSelection}
@@ -635,6 +712,7 @@ export function BibleReader({
         renderItem={renderVerse}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        style={!initialPositionReady && styles.initialPositioning}
         viewabilityConfig={Platform.OS === 'web' ? undefined : READING_VIEWABILITY_CONFIG}
         windowSize={Platform.OS === 'web' ? 201 : 21}
         onScrollToIndexFailed={({ averageItemLength, index }) => {
@@ -642,6 +720,12 @@ export function BibleReader({
             animated: false,
             offset: Math.max(averageItemLength * index, 0),
           });
+          if (initialPositionPendingRef.current) {
+            if (initialPositionRetryTimerRef.current) {
+              clearTimeout(initialPositionRetryTimerRef.current);
+            }
+            initialPositionRetryTimerRef.current = setTimeout(positionInitialVerse, 80);
+          }
         }}
       />
 
@@ -935,6 +1019,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     width: '100%',
   },
+  initialPositioning: { opacity: 0 },
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',

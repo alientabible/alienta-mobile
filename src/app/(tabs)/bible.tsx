@@ -1,7 +1,7 @@
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { AppIcon } from '@/components/AppIcon';
@@ -26,6 +26,18 @@ import type {
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
+
+function blurActiveWebElement() {
+  if (
+    Platform.OS !== 'web' ||
+    typeof document === 'undefined' ||
+    typeof HTMLElement === 'undefined'
+  ) {
+    return;
+  }
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement) activeElement.blur();
+}
 
 export default function BibleScreen() {
   const database = useSQLiteContext();
@@ -71,6 +83,7 @@ export default function BibleScreen() {
   );
 
   const openReader = (location: ReadingLocation) => {
+    blurActiveWebElement();
     router.push({
       pathname: '/bible/reader',
       params: {
