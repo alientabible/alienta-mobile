@@ -10,12 +10,19 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { BibleDatabaseProvider } from '@/features/bible/BibleDatabaseProvider';
 import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
+
+const bibleRouteOptions = {
+  animation: 'slide_from_right' as const,
+  gestureEnabled: true,
+  presentation: 'card' as const,
+};
 
 function RootNavigator() {
   const theme = useAppTheme();
@@ -30,6 +37,9 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="bible/reader" options={bibleRouteOptions} />
+        <Stack.Screen name="bible/search" options={bibleRouteOptions} />
+        <Stack.Screen name="bible/sources" options={bibleRouteOptions} />
         <Stack.Screen name="reflection/[id]" options={{ animation: 'fade' }} />
       </Stack>
     </>
@@ -37,6 +47,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [databaseReady, setDatabaseReady] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
     CormorantGaramond_500Medium,
     CormorantGaramond_500Medium_Italic,
@@ -47,10 +58,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && databaseReady) {
       void SplashScreen.hideAsync();
     }
-  }, [fontError, fontsLoaded]);
+  }, [databaseReady, fontError, fontsLoaded]);
+
+  const handleDatabaseReady = useCallback(() => setDatabaseReady(true), []);
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -59,7 +72,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RootNavigator />
+        <BibleDatabaseProvider onReady={handleDatabaseReady}>
+          <RootNavigator />
+        </BibleDatabaseProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

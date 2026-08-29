@@ -4,7 +4,7 @@ Repositorio de trabajo para una aplicación móvil cristiana, accesible y multil
 
 ## Estado
 
-La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ya ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La integración con Biblia, IA y Supabase se añadirá por fases.
+La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La Biblia local ya incorpora RVR1909 y WEB con lectura, búsqueda, favoritos y progreso sin conexión. La IA y Supabase se añadirán por fases.
 
 ## Documentación
 
@@ -16,13 +16,13 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye c
 
 - Cliente móvil: Expo + React Native + TypeScript.
 - Backend: Supabase (Postgres, autenticación, almacenamiento y funciones de servidor).
-- Biblia inicial: Reina-Valera 1909 en español y World English Bible en inglés, sujetas a una verificación final de procedencia y licencia antes de importar los textos.
+- Biblia inicial: Reina-Valera 1909 en español y World English Bible en inglés, importadas desde eBible.org con procedencia, licencia y hashes verificados.
 - Lanzamiento inicial: español, lectura sin cuenta y funciones sociales limitadas a un piloto cerrado para adultos.
 - IA: respuestas basadas exclusivamente en versículos recuperados de la base bíblica; nunca se permitirá que el modelo invente o reescriba el texto bíblico.
 
 ## Siguiente hito
 
-Construir la Biblia local con una fuente y licencia verificadas, sin conectar todavía IA ni Supabase.
+Construir el flujo para compartir versículos y reflexiones con atribución visible, sin conectar todavía IA ni Supabase.
 
 ## Desarrollo local
 
