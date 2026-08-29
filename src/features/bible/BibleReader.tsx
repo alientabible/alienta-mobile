@@ -22,6 +22,13 @@ import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BibleVersionSwitch } from '@/features/bible/BibleVersionSwitch';
 import {
+  CHAPTER_END_THRESHOLD,
+  resolveChapterEndLock,
+  resolveScrollDirection,
+  resolveVisibleReadingVerse,
+  type ScrollDirection,
+} from '@/features/bible/readingProgress';
+import {
   getBooks,
   getChapter,
   getFavoriteKeys,
@@ -95,6 +102,9 @@ export function BibleReader({
     initialVerse !== null ? Number.POSITIVE_INFINITY : 0,
   );
   const requestWebReadingMeasurementRef = useRef<() => void>(() => undefined);
+  const scrollDirectionRef = useRef<ScrollDirection>('down');
+  const lastScrollOffsetRef = useRef(0);
+  const chapterEndLockedRef = useRef(false);
   const activeVerseRef = useRef(initialVerse ?? 1);
   const loadingRef = useRef(true);
   const latestReadingRef = useRef<ReadingLocation>({
@@ -224,11 +234,18 @@ export function BibleReader({
         completeInitialPositionRef.current();
       }
       if (loadingRef.current || manualSelectionLockedRef.current) return;
-      const firstVisibleVerse = viewableItems.find(
-        (token) => token.isViewable && token.item,
-      )?.item;
-      if (firstVisibleVerse) {
-        markReadingVerseRef.current(firstVisibleVerse.verse);
+      if (chapterEndLockedRef.current) return;
+
+      const visibleVerses = viewableItems
+        .filter((token) => token.isViewable && token.item)
+        .map((token) => ({ index: token.index ?? 0, verse: token.item.verse }));
+      const readingVerse = resolveVisibleReadingVerse(
+        visibleVerses,
+        scrollDirectionRef.current,
+      );
+
+      if (readingVerse !== null) {
+        markReadingVerseRef.current(readingVerse);
       }
     },
   );
@@ -266,6 +283,15 @@ export function BibleReader({
 
   const handleReaderScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const nextOffset = Math.max(contentOffset.y, 0);
+      scrollDirectionRef.current = resolveScrollDirection(
+        lastScrollOffsetRef.current,
+        nextOffset,
+        scrollDirectionRef.current,
+      );
+      lastScrollOffsetRef.current = nextOffset;
+
       if (
         Platform.OS === 'web' &&
         manualSelectionLockedRef.current &&
@@ -275,19 +301,30 @@ export function BibleReader({
       }
 
       if (loadingRef.current || manualSelectionLockedRef.current || verses.length === 0) return;
-      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
       const distanceFromEnd = contentSize.height - contentOffset.y - layoutMeasurement.height;
-      if (contentSize.height > 0 && layoutMeasurement.height > 0 && distanceFromEnd <= 12) {
+      const hasMeasuredContent = contentSize.height > 0 && layoutMeasurement.height > 0;
+      const nextChapterEndLock = hasMeasuredContent
+        ? resolveChapterEndLock(
+            distanceFromEnd,
+            chapterEndLockedRef.current,
+            scrollDirectionRef.current,
+          )
+        : chapterEndLockedRef.current;
+
+      if (nextChapterEndLock && distanceFromEnd <= CHAPTER_END_THRESHOLD) {
+        chapterEndLockedRef.current = nextChapterEndLock;
         markReadingVerseRef.current(verses[verses.length - 1].verse);
+        return;
+      }
+
+      chapterEndLockedRef.current = nextChapterEndLock;
+
+      if (Platform.OS === 'web') {
+        requestWebReadingMeasurementRef.current();
       }
     },
     [releaseManualSelection, verses],
   );
-
-  const handleReachedChapterEnd = useCallback(() => {
-    if (loadingRef.current || manualSelectionLockedRef.current || verses.length === 0) return;
-    markReadingVerseRef.current(verses[verses.length - 1].verse);
-  }, [verses]);
 
   useEffect(() => {
     if (
@@ -307,14 +344,24 @@ export function BibleReader({
     const measureReadingPosition = () => {
       measurementFrame = null;
       if (manualSelectionLockedRef.current) return;
+      if (chapterEndLockedRef.current) {
+        markReadingVerseRef.current(verses[verses.length - 1].verse);
+        return;
+      }
+
       const readingLine = window.innerHeight * WEB_READING_LINE_RATIO;
       let closestVerse: { centerDistance: number; distance: number; verse: number } | null = null;
+      let bottomVisibleVerse: { bottom: number; verse: number } | null = null;
 
       for (const verse of verses) {
         const element = document.getElementById(`bible-verse-${verse.verse}`);
         if (!element) continue;
         const bounds = element.getBoundingClientRect();
         if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) continue;
+
+        if (!bottomVisibleVerse || bounds.bottom > bottomVisibleVerse.bottom) {
+          bottomVisibleVerse = { bottom: bounds.bottom, verse: verse.verse };
+        }
 
         const crossesReadingLine = bounds.top <= readingLine && bounds.bottom >= readingLine;
         const distance = crossesReadingLine
@@ -331,8 +378,10 @@ export function BibleReader({
         }
       }
 
-      if (closestVerse) {
-        markReadingVerseRef.current(closestVerse.verse);
+      const readingVerse =
+        scrollDirectionRef.current === 'up' ? bottomVisibleVerse?.verse : closestVerse?.verse;
+      if (readingVerse !== undefined) {
+        markReadingVerseRef.current(readingVerse);
       }
     };
 
@@ -379,6 +428,9 @@ export function BibleReader({
     initialTargetPendingRef.current = false;
     manualSelectionLockedRef.current = false;
     programmaticScrollUntilRef.current = Date.now() + PROGRAMMATIC_SCROLL_SETTLE_MS;
+    scrollDirectionRef.current = 'down';
+    lastScrollOffsetRef.current = 0;
+    chapterEndLockedRef.current = false;
     cancelPendingProgressSave();
     loadingRef.current = true;
     setLoading(true);
@@ -734,8 +786,6 @@ export function BibleReader({
         keyExtractor={(item) => item.key}
         maxToRenderPerBatch={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
         onContentSizeChange={positionInitialVerse}
-        onEndReached={handleReachedChapterEnd}
-        onEndReachedThreshold={0.01}
         onMomentumScrollBegin={releaseManualSelection}
         onScroll={handleReaderScroll}
         onScrollBeginDrag={releaseManualSelection}
