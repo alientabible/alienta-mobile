@@ -4,7 +4,7 @@ Repositorio de trabajo para una aplicación móvil cristiana, accesible y multil
 
 ## Estado
 
-La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La Biblia local ya incorpora RVR1909 y WEB con lectura, búsqueda, favoritos y progreso sin conexión. La IA y Supabase se añadirán por fases.
+La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La Biblia local ya incorpora RVR1909 y WEB con lectura, búsqueda, favoritos y progreso sin conexión. También permite convertir versículos y reflexiones en tarjetas PNG verificables, listas para la hoja de compartir del dispositivo. La IA y Supabase se añadirán por fases.
 
 ## Documentación
 
@@ -22,7 +22,7 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye c
 
 ## Siguiente hito
 
-Construir el flujo para compartir versículos y reflexiones con atribución visible, sin conectar todavía IA ni Supabase.
+Construir la cuenta opcional y la sincronización con Supabase sin bloquear la lectura local ni el flujo de reflexión.
 
 ## Desarrollo local
 

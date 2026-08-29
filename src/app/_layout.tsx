@@ -41,6 +41,7 @@ function RootNavigator() {
         <Stack.Screen name="bible/search" options={bibleRouteOptions} />
         <Stack.Screen name="bible/sources" options={bibleRouteOptions} />
         <Stack.Screen name="reflection/[id]" options={{ animation: 'fade' }} />
+        <Stack.Screen name="share" options={bibleRouteOptions} />
       </Stack>
     </>
   );

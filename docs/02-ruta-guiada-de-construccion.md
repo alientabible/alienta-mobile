@@ -171,9 +171,20 @@ Estado: **completado y listo para validación en dispositivo**.
 - `src/features/sharing/ShareCard.tsx`
 - `src/features/sharing/shareTemplates.ts`
 - `src/features/sharing/createShareImage.ts`
-- `assets/share-backgrounds/`
+- `src/features/sharing/shareActions.ts`
+- `src/features/sharing/ShareComposer.tsx`
+- `src/app/share.tsx`
 
-Pruebas: texto largo, fuente grande, marca de agua, atribución y distintas relaciones de aspecto.
+Estado: **completado y listo para validación en dispositivo**.
+
+- comparte tanto un versículo exacto como una reflexión local sin permitir editar su contenido;
+- ofrece cuatro estilos procedurales accesibles, sin añadir archivos gráficos pesados al paquete;
+- permite escoger formato cuadrado 1:1 o historia 9:16, alineación y tres escalas de texto;
+- conserva siempre la referencia, la versión, la atribución editorial y la marca de Alienta;
+- genera PNG de 1.080 px localmente: captura nativa en iOS y Android y Canvas en web;
+- abre la hoja de compartir del sistema en dispositivos y descarga el PNG como alternativa web;
+- permite copiar el texto con su referencia y marca sin alterar el original;
+- incluye pruebas de texto largo, fuente adaptable, marca, atribución, nombres seguros y relaciones de aspecto.
 
 ### Bloque E. Supabase y cuenta opcional
 

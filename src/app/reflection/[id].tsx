@@ -160,6 +160,12 @@ export default function ReflectionScreen() {
               id={reflectionId}
               onFeedback={setFeedback}
               onRestart={goHome}
+              onShare={() =>
+                router.push({
+                  pathname: '/share',
+                  params: { content: 'reflection', id: reflectionId, source: 'reflection' },
+                })
+              }
             />
           )}
         </ScreenReveal>
@@ -173,6 +179,7 @@ type StandardReflectionProps = {
   id: StandardReflectionId;
   onFeedback: (value: FeedbackValue) => void;
   onRestart: () => void;
+  onShare: () => void;
 };
 
 function StandardReflection({
@@ -180,6 +187,7 @@ function StandardReflection({
   id,
   onFeedback,
   onRestart,
+  onShare,
 }: StandardReflectionProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
@@ -253,6 +261,14 @@ function StandardReflection({
       />
 
       <PreviewNotice tone="home">{t('reflection.disclaimer')}</PreviewNotice>
+
+      <View style={styles.shareAction}>
+        <AppButton
+          icon={{ android: 'ios_share', ios: 'square.and.arrow.up' }}
+          label={t('reflection.share')}
+          onPress={onShare}
+        />
+      </View>
 
       <View style={styles.feedbackBlock}>
         <AppText style={styles.feedbackTitle}>{t('reflection.feedbackTitle')}</AppText>
@@ -491,6 +507,7 @@ function createStyles(theme: AppTheme) {
       marginBottom: 18,
       marginTop: 28,
     },
+    shareAction: { marginTop: 18 },
     feedbackTitle: {
       fontFamily: fonts.sansSemibold,
       fontSize: 15,
