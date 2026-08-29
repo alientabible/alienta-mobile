@@ -71,7 +71,11 @@ export function BibleReader({
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
+  const reduceMotion = useReducedMotionPreference();
   const listRef = useRef<FlatList<BibleVerse>>(null);
+  const [initialLoadingOpacity] = useState(
+    () => new Animated.Value(initialVerse === null ? 0 : 1),
+  );
   const initialTargetRef = useRef({
     bookId: initialBookId,
     chapter: Math.max(1, initialChapter),
@@ -111,6 +115,7 @@ export function BibleReader({
   const [textScale, setTextScale] = useState(1);
   const [loading, setLoading] = useState(true);
   const [initialPositionReady, setInitialPositionReady] = useState(initialVerse === null);
+  const [showInitialLoading, setShowInitialLoading] = useState(initialVerse !== null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerStep, setPickerStep] = useState<PickerStep>('book');
 
@@ -192,6 +197,20 @@ export function BibleReader({
     markReadingVerseRef.current = markReadingVerse;
   }, [markReadingVerse]);
 
+  useEffect(() => {
+    if (!initialPositionReady || !showInitialLoading) return undefined;
+
+    const reveal = Animated.timing(initialLoadingOpacity, {
+      duration: reduceMotion ? 0 : 180,
+      toValue: 0,
+      useNativeDriver: Platform.OS !== 'web',
+    });
+    reveal.start(({ finished }) => {
+      if (finished) setShowInitialLoading(false);
+    });
+    return () => reveal.stop();
+  }, [initialLoadingOpacity, initialPositionReady, reduceMotion, showInitialLoading]);
+
   const [onViewableItemsChanged] = useState(
     () => ({ viewableItems }: { viewableItems: ViewToken<BibleVerse>[] }) => {
       const initialVerseTarget = initialPositionVerseRef.current;
@@ -246,7 +265,7 @@ export function BibleReader({
   }, []);
 
   const handleReaderScroll = useCallback(
-    (_event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (
         Platform.OS === 'web' &&
         manualSelectionLockedRef.current &&
@@ -254,9 +273,21 @@ export function BibleReader({
       ) {
         releaseManualSelection();
       }
+
+      if (loadingRef.current || manualSelectionLockedRef.current || verses.length === 0) return;
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const distanceFromEnd = contentSize.height - contentOffset.y - layoutMeasurement.height;
+      if (contentSize.height > 0 && layoutMeasurement.height > 0 && distanceFromEnd <= 12) {
+        markReadingVerseRef.current(verses[verses.length - 1].verse);
+      }
     },
-    [releaseManualSelection],
+    [releaseManualSelection, verses],
   );
+
+  const handleReachedChapterEnd = useCallback(() => {
+    if (loadingRef.current || manualSelectionLockedRef.current || verses.length === 0) return;
+    markReadingVerseRef.current(verses[verses.length - 1].verse);
+  }, [verses]);
 
   useEffect(() => {
     if (
@@ -703,6 +734,8 @@ export function BibleReader({
         keyExtractor={(item) => item.key}
         maxToRenderPerBatch={Platform.OS === 'web' ? Math.max(verses.length, 1) : 12}
         onContentSizeChange={positionInitialVerse}
+        onEndReached={handleReachedChapterEnd}
+        onEndReachedThreshold={0.01}
         onMomentumScrollBegin={releaseManualSelection}
         onScroll={handleReaderScroll}
         onScrollBeginDrag={releaseManualSelection}
@@ -712,7 +745,6 @@ export function BibleReader({
         renderItem={renderVerse}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        style={!initialPositionReady && styles.initialPositioning}
         viewabilityConfig={Platform.OS === 'web' ? undefined : READING_VIEWABILITY_CONFIG}
         windowSize={Platform.OS === 'web' ? 201 : 21}
         onScrollToIndexFailed={({ averageItemLength, index }) => {
@@ -728,6 +760,58 @@ export function BibleReader({
           }
         }}
       />
+
+      {showInitialLoading ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.initialLoadingOverlay,
+            { backgroundColor: theme.colors.background, opacity: initialLoadingOpacity },
+          ]}
+        >
+          <View style={styles.initialLoadingContent}>
+            <View style={styles.initialLoadingTopBar}>
+              <View
+                style={[styles.initialLoadingRound, { backgroundColor: theme.colors.surfaceElevated }]}
+              />
+              <View
+                style={[styles.initialLoadingEyebrow, { backgroundColor: theme.colors.outline }]}
+              />
+              <View
+                style={[styles.initialLoadingRound, { backgroundColor: theme.colors.surfaceElevated }]}
+              />
+            </View>
+            <View
+              style={[
+                styles.initialLoadingCard,
+                { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.outline },
+                getPremiumDepth(theme, 'raised'),
+              ]}
+            >
+              <View style={[styles.initialLoadingLineShort, { backgroundColor: palette.soft }]} />
+              <View style={[styles.initialLoadingLine, { backgroundColor: theme.colors.outline }]} />
+              <View
+                style={[styles.initialLoadingDivider, { backgroundColor: theme.colors.outline }]}
+              />
+              <View style={styles.initialLoadingStatus}>
+                <ActivityIndicator color={palette.accent} size="small" />
+                <AppText color="textMuted" variant="caption">
+                  {t('bible.reader.loading')}
+                </AppText>
+              </View>
+            </View>
+            <View
+              style={[styles.initialLoadingTitle, { backgroundColor: theme.colors.outline }]}
+            />
+            <View
+              style={[styles.initialLoadingVerse, { backgroundColor: theme.colors.surface }]}
+            />
+            <View
+              style={[styles.initialLoadingVerse, { backgroundColor: theme.colors.surface }]}
+            />
+          </View>
+        </Animated.View>
+      ) : null}
 
       <Modal
         animationType="fade"
@@ -1019,7 +1103,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     width: '100%',
   },
-  initialPositioning: { opacity: 0 },
+  initialLoadingOverlay: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 20,
+  },
+  initialLoadingContent: {
+    alignSelf: 'center',
+    maxWidth: 760,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    width: '100%',
+  },
+  initialLoadingTopBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  initialLoadingRound: { borderRadius: 18, height: 44, width: 44 },
+  initialLoadingEyebrow: { borderRadius: 4, height: 8, opacity: 0.72, width: 88 },
+  initialLoadingCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    marginTop: 22,
+    padding: 18,
+  },
+  initialLoadingLineShort: { borderRadius: 5, height: 9, width: 70 },
+  initialLoadingLine: {
+    borderRadius: 6,
+    height: 22,
+    marginTop: 12,
+    opacity: 0.68,
+    width: '46%',
+  },
+  initialLoadingDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 20,
+    opacity: 0.75,
+  },
+  initialLoadingStatus: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 40 },
+  initialLoadingTitle: {
+    borderRadius: 8,
+    height: 34,
+    marginTop: 40,
+    opacity: 0.62,
+    width: '44%',
+  },
+  initialLoadingVerse: { borderRadius: 16, height: 88, marginTop: 18 },
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',
