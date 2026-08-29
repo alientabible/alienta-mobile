@@ -3,8 +3,8 @@ import { PixelRatio, Platform, type View } from 'react-native';
 import {
   createShareFilename,
   getShareDimensions,
-  getShareFontSize,
   getShareTemplate,
+  getShareTypography,
   SHARE_BRAND_WATERMARK,
   type ShareCardOptions,
   type ShareContent,
@@ -114,43 +114,52 @@ async function createWebShareImage(
   context.letterSpacing = '0px';
 
   const isStory = options.aspect === 'story';
-  const contentTop = isStory ? 360 : 225;
-  const contentBottom = isStory ? dimensions.height - 300 : dimensions.height - 205;
-  const availableHeight = contentBottom - contentTop;
+  const measuredLength = content.body.length + (content.title?.length ?? 0) * 2;
+  const typography = getShareTypography(measuredLength, options.textSize, options.aspect);
+  const contentTop = isStory ? 250 : 190;
+  const footerTop = dimensions.height - (isStory ? 150 : 135);
+  const referenceBaseline = footerTop - (isStory ? 105 : 92);
+  const referenceRuleY = referenceBaseline - 54;
+  const bodyBottom = referenceRuleY - 42;
+  const availableBodyHeight = bodyBottom - contentTop;
   const alignmentX = options.alignment === 'center' ? dimensions.width / 2 : margin;
   const canvasAlignment = options.alignment === 'center' ? 'center' : 'left';
-  let bodySize = getShareFontSize(content.body.length, options.textSize, options.aspect) * 3;
-  const titleSize = isStory ? 86 : 76;
+  let bodySize = typography.bodyFontSize * 3;
+  const minimumBodySize = 24;
+  const titleSize = typography.titleFontSize * 3;
+  const quoteSize = typography.quoteFontSize * 3;
+  const quoteSpace = content.kind === 'verse' ? typography.quoteLineHeight * 3 : 0;
   let bodyLines: string[] = [];
   let titleLines: string[] = [];
-  let blockHeight = 0;
+  let bodyBlockHeight = 0;
+  let bodyLineHeight = bodySize * 1.28;
 
-  while (bodySize >= 39) {
+  while (true) {
     context.font = `${content.kind === 'verse' ? '500' : '400'} ${bodySize}px ${
       content.kind === 'verse' ? '"Cormorant Garamond", Georgia, serif' : 'Manrope, Arial, sans-serif'
     }`;
     bodyLines = wrapCanvasText(context, content.body, textWidth);
     context.font = `600 ${titleSize}px "Cormorant Garamond", Georgia, serif`;
     titleLines = content.title ? wrapCanvasText(context, content.title, textWidth) : [];
-    blockHeight =
-      (content.kind === 'verse' ? 82 : 0) +
+    bodyLineHeight = bodySize * (measuredLength > 240 ? 1.2 : 1.28);
+    bodyBlockHeight =
+      quoteSpace +
       titleLines.length * titleSize * 1.08 +
-      (titleLines.length ? 36 : 0) +
-      bodyLines.length * bodySize * 1.28 +
-      128;
-    if (blockHeight <= availableHeight) break;
-    bodySize -= 3;
+      (titleLines.length ? 30 : 0) +
+      bodyLines.length * bodyLineHeight;
+    if (bodyBlockHeight <= availableBodyHeight || bodySize <= minimumBodySize) break;
+    bodySize = Math.max(bodySize - 2, minimumBodySize);
   }
 
-  let cursorY = contentTop + Math.max((availableHeight - blockHeight) / 2, 0);
+  let cursorY = contentTop + Math.max((availableBodyHeight - bodyBlockHeight) / 2, 0);
   context.textAlign = canvasAlignment;
   context.textBaseline = 'alphabetic';
 
   if (content.kind === 'verse') {
     context.fillStyle = template.accent;
-    context.font = '500 italic 150px "Cormorant Garamond", Georgia, serif';
-    context.fillText('“', alignmentX, cursorY + 92);
-    cursorY += 82;
+    context.font = `500 italic ${quoteSize}px "Cormorant Garamond", Georgia, serif`;
+    context.fillText('“', alignmentX, cursorY + quoteSpace * 0.8);
+    cursorY += quoteSpace;
   }
 
   if (titleLines.length) {
@@ -164,17 +173,15 @@ async function createWebShareImage(
   context.font = `${content.kind === 'verse' ? '500' : '400'} ${bodySize}px ${
     content.kind === 'verse' ? '"Cormorant Garamond", Georgia, serif' : 'Manrope, Arial, sans-serif'
   }`;
-  cursorY = drawCanvasLines(context, bodyLines, alignmentX, cursorY, bodySize * 1.28);
+  drawCanvasLines(context, bodyLines, alignmentX, cursorY, bodyLineHeight);
 
-  cursorY += 46;
   context.fillStyle = template.accent;
   const ruleX = options.alignment === 'center' ? dimensions.width / 2 - 63 : margin;
-  context.fillRect(ruleX, cursorY, 126, 5);
-  cursorY += 52;
+  context.fillRect(ruleX, referenceRuleY, 126, 5);
   context.fillStyle = template.text;
   context.font = '700 29px Manrope, Arial, sans-serif';
   context.letterSpacing = '4px';
-  context.fillText(content.reference.toUpperCase(), alignmentX, cursorY);
+  context.fillText(content.reference.toUpperCase(), alignmentX, referenceBaseline);
   context.letterSpacing = '0px';
 
   const footerY = dimensions.height - 82;

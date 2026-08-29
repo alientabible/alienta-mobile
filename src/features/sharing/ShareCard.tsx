@@ -2,8 +2,8 @@ import { forwardRef } from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import {
-  getShareFontSize,
   getShareTemplate,
+  getShareTypography,
   SHARE_BRAND_WATERMARK,
   type ShareCardOptions,
   type ShareContent,
@@ -22,9 +22,9 @@ export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard(
 ) {
   const template = getShareTemplate(options.templateId);
   const textAlign = options.alignment;
-  const fontSize = getShareFontSize(content.body.length, options.textSize, options.aspect);
   const isStory = options.aspect === 'story';
-  const maximumLines = isStory ? 26 : 18;
+  const measuredLength = content.body.length + (content.title?.length ?? 0) * 2;
+  const typography = getShareTypography(measuredLength, options.textSize, options.aspect);
 
   return (
     <View
@@ -70,51 +70,77 @@ export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard(
       </View>
 
       <View style={[styles.content, isStory && styles.contentStory]}>
-        {content.kind === 'verse' ? (
+        <View style={styles.bodyArea}>
+          {content.kind === 'verse' ? (
+            <Text
+              accessibilityElementsHidden
+              style={[
+                styles.quoteMark,
+                {
+                  color: template.accent,
+                  fontSize: typography.quoteFontSize,
+                  lineHeight: typography.quoteLineHeight,
+                  textAlign,
+                },
+              ]}
+            >
+              “
+            </Text>
+          ) : null}
+          {content.title ? (
+            <Text
+              numberOfLines={isStory ? 4 : 3}
+              style={[
+                styles.title,
+                {
+                  color: template.text,
+                  fontSize: typography.titleFontSize,
+                  lineHeight: typography.titleLineHeight,
+                  textAlign,
+                },
+              ]}
+            >
+              {content.title}
+            </Text>
+          ) : null}
           <Text
-            accessibilityElementsHidden
-            style={[styles.quoteMark, { color: template.accent, textAlign }]}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            numberOfLines={typography.maximumBodyLines}
+            style={[
+              styles.body,
+              {
+                color: template.text,
+                fontFamily: content.kind === 'verse' ? fonts.serifMedium : fonts.sansRegular,
+                fontSize: typography.bodyFontSize,
+                lineHeight: typography.bodyLineHeight,
+                textAlign,
+              },
+            ]}
           >
-            “
+            {content.body}
           </Text>
-        ) : null}
-        {content.title ? (
+        </View>
+
+        <View style={styles.referenceBlock}>
+          <View
+            style={[
+              styles.referenceRule,
+              {
+                alignSelf: options.alignment === 'center' ? 'center' : 'flex-start',
+                backgroundColor: template.accent,
+              },
+            ]}
+          />
           <Text
-            numberOfLines={isStory ? 4 : 3}
-            style={[styles.title, { color: template.text, textAlign }]}
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+            numberOfLines={2}
+            style={[styles.reference, { color: template.text, textAlign }]}
           >
-            {content.title}
+            {content.reference.toUpperCase()}
           </Text>
-        ) : null}
-        <Text
-          adjustsFontSizeToFit
-          minimumFontScale={0.6}
-          numberOfLines={maximumLines}
-          style={[
-            styles.body,
-            {
-              color: template.text,
-              fontFamily: content.kind === 'verse' ? fonts.serifMedium : fonts.sansRegular,
-              fontSize,
-              lineHeight: fontSize * 1.28,
-              textAlign,
-            },
-          ]}
-        >
-          {content.body}
-        </Text>
-        <View
-          style={[
-            styles.referenceRule,
-            {
-              alignSelf: options.alignment === 'center' ? 'center' : 'flex-start',
-              backgroundColor: template.accent,
-            },
-          ]}
-        />
-        <Text style={[styles.reference, { color: template.text, textAlign }]}>
-          {content.reference.toUpperCase()}
-        </Text>
+        </View>
       </View>
 
       <View style={[styles.footer, isStory && styles.footerStory]}>
@@ -133,7 +159,6 @@ const styles = StyleSheet.create({
   card: {
     alignSelf: 'center',
     borderRadius: 28,
-    justifyContent: 'space-between',
     overflow: 'hidden',
     padding: 24,
     position: 'relative',
@@ -154,7 +179,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '68%',
   },
-  brandRow: { alignItems: 'center', flexDirection: 'row', gap: 9, zIndex: 1 },
+  brandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 0,
+    gap: 9,
+    zIndex: 1,
+  },
   brandRowStory: { marginTop: 10 },
   brandMark: {
     alignItems: 'center',
@@ -165,34 +196,45 @@ const styles = StyleSheet.create({
   },
   brandLetter: { fontFamily: fonts.serifSemibold, fontSize: 19, lineHeight: 22 },
   brand: { fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 2.1 },
-  content: { justifyContent: 'center', paddingVertical: 12, zIndex: 1 },
-  contentStory: { flex: 1, paddingVertical: 42 },
+  content: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    paddingVertical: 10,
+    zIndex: 1,
+  },
+  contentStory: { paddingVertical: 28 },
+  bodyArea: {
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 0,
+    overflow: 'hidden',
+  },
   quoteMark: {
     fontFamily: fonts.serifItalic,
-    fontSize: 54,
-    lineHeight: 45,
     marginBottom: -4,
   },
   title: {
     fontFamily: fonts.serifSemibold,
-    fontSize: 29,
-    lineHeight: 33,
     marginBottom: 14,
   },
-  body: { flexShrink: 1 },
-  referenceRule: { height: 2, marginTop: 18, width: 42 },
+  body: { flexShrink: 1, width: '100%' },
+  referenceBlock: { flexShrink: 0, minHeight: 48, paddingTop: 8 },
+  referenceRule: { height: 2, width: 42 },
   reference: {
     fontFamily: fonts.sansBold,
     fontSize: 10,
     letterSpacing: 1.3,
     lineHeight: 16,
-    marginTop: 10,
+    marginTop: 8,
   },
   footer: {
     alignItems: 'flex-end',
     flexDirection: 'row',
+    flexShrink: 0,
     gap: 12,
     justifyContent: 'space-between',
+    minHeight: 24,
     zIndex: 1,
   },
   footerStory: { marginBottom: 10 },

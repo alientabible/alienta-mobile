@@ -7,6 +7,7 @@ import {
   getShareDimensions,
   getShareFontSize,
   getShareTemplate,
+  getShareTypography,
   SHARE_BRAND_WATERMARK,
   SHARE_TEMPLATES,
 } from '../src/features/sharing/shareTemplates.ts';
@@ -32,13 +33,34 @@ test('genera formatos 1:1 y 9:16 a resolución de publicación', () => {
   assert.deepEqual(getShareDimensions('story'), { height: 1920, width: 1080 });
 });
 
-test('adapta la fuente para el texto más largo sin hacerla ilegible', () => {
+test('adapta la fuente para el texto más largo sin invadir referencia ni atribución', () => {
   const shortSize = getShareFontSize(verse.body.length, 'large', 'square');
   const longSize = getShareFontSize(LONGEST_BUNDLED_VERSE_LENGTH, 'large', 'square');
 
   assert.ok(longSize < shortSize);
-  assert.ok(longSize >= 15);
-  assert.ok(getShareFontSize(LONGEST_BUNDLED_VERSE_LENGTH, 'compact', 'story') >= 15);
+  assert.ok(longSize >= 10.5);
+  assert.ok(longSize <= 12);
+  assert.ok(getShareFontSize(LONGEST_BUNDLED_VERSE_LENGTH, 'large', 'story') <= 12.5);
+});
+
+test('mantiene límites de líneas estables para ambos formatos', () => {
+  const square = getShareTypography(LONGEST_BUNDLED_VERSE_LENGTH, 'comfortable', 'square');
+  const story = getShareTypography(LONGEST_BUNDLED_VERSE_LENGTH, 'comfortable', 'story');
+
+  assert.equal(square.maximumBodyLines, 24);
+  assert.equal(story.maximumBodyLines, 34);
+  assert.ok(square.bodyLineHeight > square.bodyFontSize);
+  assert.ok(story.bodyLineHeight > story.bodyFontSize);
+  assert.ok(square.quoteFontSize < 48);
+});
+
+test('la escala tipográfica disminuye de forma monótona al crecer el contenido', () => {
+  const lengths = [60, 100, 160, 220, 300, 400, 500, LONGEST_BUNDLED_VERSE_LENGTH];
+  const sizes = lengths.map((length) => getShareFontSize(length, 'comfortable', 'square'));
+
+  for (let index = 1; index < sizes.length; index += 1) {
+    assert.ok(sizes[index] <= sizes[index - 1]);
+  }
 });
 
 test('el texto compartido conserva cuerpo, referencia y marca de agua', () => {

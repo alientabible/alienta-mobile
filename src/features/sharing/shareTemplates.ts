@@ -78,6 +78,16 @@ export const DEFAULT_SHARE_OPTIONS: ShareCardOptions = {
 export const SHARE_BRAND_WATERMARK = 'ALIENTA';
 export const SHARE_OUTPUT_WIDTH = 1080;
 
+export type ShareTypography = {
+  bodyFontSize: number;
+  bodyLineHeight: number;
+  maximumBodyLines: number;
+  quoteFontSize: number;
+  quoteLineHeight: number;
+  titleFontSize: number;
+  titleLineHeight: number;
+};
+
 export function getShareTemplate(templateId: ShareTemplateId) {
   return SHARE_TEMPLATES.find((template) => template.id === templateId) ?? SHARE_TEMPLATES[0];
 }
@@ -94,21 +104,60 @@ export function getShareFontSize(
   textSize: ShareTextSize,
   aspect: ShareAspect,
 ) {
-  const sizeAdjustment = textSize === 'compact' ? -2 : textSize === 'large' ? 2 : 0;
-  const baseSize = aspect === 'story' ? 34 : 30;
-  const lengthAdjustment =
-    contentLength > 500
-      ? -13
-      : contentLength > 380
-        ? -10
-        : contentLength > 280
-          ? -7
-          : contentLength > 190
-            ? -4
-            : contentLength > 120
-              ? -2
-              : 0;
-  return Math.max(baseSize + sizeAdjustment + lengthAdjustment, 15);
+  return getShareTypography(contentLength, textSize, aspect).bodyFontSize;
+}
+
+/**
+ * Returns deterministic typography for both the native preview and the web canvas.
+ * React Native Web does not consistently support `adjustsFontSizeToFit`, so the
+ * longest bundled verses need a conservative, platform-independent scale.
+ */
+export function getShareTypography(
+  contentLength: number,
+  textSize: ShareTextSize,
+  aspect: ShareAspect,
+): ShareTypography {
+  const normalizedLength = Math.max(contentLength, 0);
+  const comfortableSize = getComfortableBodySize(normalizedLength, aspect);
+  const userScale = textSize === 'compact' ? 0.9 : textSize === 'large' ? 1.08 : 1;
+  const bodyFontSize = roundToHalf(Math.max(comfortableSize * userScale, 10.5));
+  const isDense = normalizedLength > 240;
+
+  return {
+    bodyFontSize,
+    bodyLineHeight: roundToHalf(bodyFontSize * (isDense ? 1.2 : 1.28)),
+    maximumBodyLines: aspect === 'story' ? 34 : 24,
+    quoteFontSize: isDense ? 38 : 48,
+    quoteLineHeight: isDense ? 34 : 41,
+    titleFontSize: isDense ? 23 : 27,
+    titleLineHeight: isDense ? 27 : 31,
+  };
+}
+
+function getComfortableBodySize(contentLength: number, aspect: ShareAspect) {
+  if (aspect === 'story') {
+    if (contentLength <= 80) return 30;
+    if (contentLength <= 130) return 27;
+    if (contentLength <= 180) return 23;
+    if (contentLength <= 240) return 20;
+    if (contentLength <= 320) return 17;
+    if (contentLength <= 420) return 15;
+    if (contentLength <= 520) return 13;
+    return 11.5;
+  }
+
+  if (contentLength <= 80) return 28;
+  if (contentLength <= 130) return 25;
+  if (contentLength <= 180) return 22;
+  if (contentLength <= 240) return 19;
+  if (contentLength <= 320) return 16;
+  if (contentLength <= 420) return 14;
+  if (contentLength <= 520) return 12;
+  return 11;
+}
+
+function roundToHalf(value: number) {
+  return Math.round(value * 2) / 2;
 }
 
 export function buildSharePlainText(content: ShareContent) {
