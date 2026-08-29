@@ -576,6 +576,22 @@ export function BibleReader({
     [database],
   );
 
+  const openVerseShare = useCallback(
+    (verse: BibleVerse) => {
+      router.push({
+        pathname: '/share',
+        params: {
+          bookId: verse.bookId,
+          chapter: String(verse.chapter),
+          source: 'bible',
+          verse: String(verse.verse),
+          versionId: verse.versionId,
+        },
+      });
+    },
+    [router],
+  );
+
   const openPicker = useCallback(() => {
     setPickerStep('book');
     setPickerOpen(true);
@@ -593,10 +609,11 @@ export function BibleReader({
         item={item}
         onFavorite={handleFavorite}
         onSelect={selectReadingVerse}
+        onShare={openVerseShare}
         textScale={textScale}
       />
     ),
-    [activeVerse, favoriteKeys, handleFavorite, selectReadingVerse, textScale],
+    [activeVerse, favoriteKeys, handleFavorite, openVerseShare, selectReadingVerse, textScale],
   );
 
   return (
@@ -1004,6 +1021,7 @@ const BibleVerseRow = memo(function BibleVerseRow({
   item,
   onFavorite,
   onSelect,
+  onShare,
   textScale,
 }: {
   favorite: boolean;
@@ -1011,6 +1029,7 @@ const BibleVerseRow = memo(function BibleVerseRow({
   item: BibleVerse;
   onFavorite: (verseKey: string) => Promise<void>;
   onSelect: (verse: number) => void;
+  onShare: (verse: BibleVerse) => void;
   textScale: number;
 }) {
   const { t } = useTranslation();
@@ -1086,28 +1105,43 @@ const BibleVerseRow = memo(function BibleVerseRow({
           {item.text}
         </AppText>
       </Pressable>
-      <Pressable
-        accessibilityLabel={
-          favorite
-            ? t('bible.reader.removeFavorite', { verse: item.verse })
-            : t('bible.reader.addFavorite', { verse: item.verse })
-        }
-        accessibilityRole="button"
-        accessibilityState={{ selected: favorite }}
-        hitSlop={8}
-        onPress={() => void onFavorite(item.key)}
-        style={({ pressed }) => [styles.favoriteButton, pressed && styles.pressed]}
-      >
-        <AppIcon
-          name={{
-            android: favorite ? 'favorite' : 'favorite_border',
-            ios: favorite ? 'heart.fill' : 'heart',
-          }}
-          size={19}
-          tintColor={favorite ? palette.accent : theme.colors.textMuted}
-          type="monochrome"
-        />
-      </Pressable>
+      <View style={styles.verseActions}>
+        <Pressable
+          accessibilityLabel={t('bible.reader.shareVerse', { verse: item.verse })}
+          accessibilityRole="button"
+          hitSlop={6}
+          onPress={() => onShare(item)}
+          style={({ pressed }) => [styles.verseActionButton, pressed && styles.pressed]}
+        >
+          <AppIcon
+            name={{ android: 'ios_share', ios: 'square.and.arrow.up' }}
+            size={18}
+            tintColor={theme.colors.textMuted}
+          />
+        </Pressable>
+        <Pressable
+          accessibilityLabel={
+            favorite
+              ? t('bible.reader.removeFavorite', { verse: item.verse })
+              : t('bible.reader.addFavorite', { verse: item.verse })
+          }
+          accessibilityRole="button"
+          accessibilityState={{ selected: favorite }}
+          hitSlop={6}
+          onPress={() => void onFavorite(item.key)}
+          style={({ pressed }) => [styles.verseActionButton, pressed && styles.pressed]}
+        >
+          <AppIcon
+            name={{
+              android: favorite ? 'favorite' : 'favorite_border',
+              ios: favorite ? 'heart.fill' : 'heart',
+            }}
+            size={19}
+            tintColor={favorite ? palette.accent : theme.colors.textMuted}
+            type="monochrome"
+          />
+        </Pressable>
+      </View>
     </Animated.View>
   );
 });
@@ -1281,12 +1315,16 @@ const styles = StyleSheet.create({
   },
   verseText: { flex: 1, fontFamily: fonts.serifMedium },
   versePressed: { opacity: 0.82 },
-  favoriteButton: {
+  verseActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginLeft: 4,
+  },
+  verseActionButton: {
     alignItems: 'center',
     height: 40,
     justifyContent: 'center',
-    marginLeft: 5,
-    width: 34,
+    width: 32,
   },
   loadingState: { alignItems: 'center', gap: 14, marginVertical: 80 },
   footer: { paddingTop: 32 },
