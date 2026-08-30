@@ -196,6 +196,41 @@ Estado: **completado y listo para validación en dispositivo**.
 
 La lectura y la reflexión básica continúan disponibles sin cuenta.
 
+Estado: **implementado y pendiente de validación contra un proyecto Supabase de prueba**.
+
+- inicia siempre en modo invitado cuando no hay configuración o sesión;
+- permite crear una cuenta opcional e iniciar/cerrar sesión por correo;
+- conserva la sesión en iOS, Android y web mediante almacenamiento compatible con cada plataforma;
+- registra por separado la aceptación de cuenta, privacidad y futura sincronización bíblica;
+- no sincroniza todavía lecturas ni almacena el texto libre de “cómo te sientes”;
+- limita perfiles y consentimientos al propietario mediante RLS forzado;
+- no entrega permisos de lectura a `anon` ni expone la clave `service_role`;
+- incluye una auditoría SQL de políticas, privilegios y ausencia de campos sensibles.
+
+### Bloque E.1. Bienvenida y personalización local
+
+- `src/features/onboarding/model.ts`
+- `src/features/onboarding/options.ts`
+- `src/features/onboarding/OnboardingProvider.tsx`
+- `src/features/onboarding/OnboardingFlow.tsx`
+- `tests/onboarding.test.mjs`
+
+Estado: **implementado y pendiente de validación visual en iPhone y web**.
+
+- aparece antes de las pestañas sin mostrar primero la pantalla principal;
+- ofrece pasos omitibles para idioma, propósito, familiaridad bíblica, emoción, ritmo y cuenta;
+- conserva localmente las respuestas y permite repetir la configuración desde Perfil;
+- incluye 23 estados emocionales y una opción explícita para cuando la persona no sabe cómo se siente;
+- guarda un ritmo de 3, 5 o 7 días por semana y una hora preferida sin solicitar permisos prematuramente;
+- mantiene la lectura, reflexión y progreso local disponibles al continuar como invitado;
+- utiliza una transición lateral de tarjetas y respeta la preferencia de reducir movimiento;
+- muestra únicamente idiomas cuyo contenido esté realmente disponible.
+
+La hora elegida queda preparada como preferencia local. La programación efectiva de avisos requiere
+incorporar y validar `expo-notifications`; no se presentará como activa antes de solicitar permiso y
+confirmar que el sistema operativo aceptó la programación. Google y Apple se incorporarán después
+de configurar sus proveedores y URLs de retorno en el proyecto Supabase de prueba.
+
 ### Bloque F. IA
 
 - `supabase/functions/generate-reflection/index.ts`
