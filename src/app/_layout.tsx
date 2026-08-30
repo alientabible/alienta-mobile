@@ -15,6 +15,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from '@/core/auth/AuthProvider';
 import { BibleDatabaseProvider } from '@/features/bible/BibleDatabaseProvider';
+import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow';
+import {
+  OnboardingProvider,
+  useOnboarding,
+} from '@/features/onboarding/OnboardingProvider';
 import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
@@ -48,6 +53,25 @@ function RootNavigator() {
   );
 }
 
+function AppGate({
+  databaseReady,
+  fontsReady,
+}: {
+  databaseReady: boolean;
+  fontsReady: boolean;
+}) {
+  const { completed, ready } = useOnboarding();
+
+  useEffect(() => {
+    if (fontsReady && databaseReady && ready) {
+      void SplashScreen.hideAsync();
+    }
+  }, [databaseReady, fontsReady, ready]);
+
+  if (!fontsReady || !databaseReady || !ready) return null;
+  return completed ? <RootNavigator /> : <OnboardingFlow />;
+}
+
 export default function RootLayout() {
   const [databaseReady, setDatabaseReady] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
@@ -59,15 +83,10 @@ export default function RootLayout() {
     Manrope_700Bold,
   });
 
-  useEffect(() => {
-    if ((fontsLoaded || fontError) && databaseReady) {
-      void SplashScreen.hideAsync();
-    }
-  }, [databaseReady, fontError, fontsLoaded]);
-
   const handleDatabaseReady = useCallback(() => setDatabaseReady(true), []);
+  const fontsReady = fontsLoaded || Boolean(fontError);
 
-  if (!fontsLoaded && !fontError) {
+  if (!fontsReady) {
     return null;
   }
 
@@ -75,9 +94,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <BibleDatabaseProvider onReady={handleDatabaseReady}>
-            <RootNavigator />
-          </BibleDatabaseProvider>
+          <OnboardingProvider>
+            <BibleDatabaseProvider onReady={handleDatabaseReady}>
+              <AppGate databaseReady={databaseReady} fontsReady={fontsReady} />
+            </BibleDatabaseProvider>
+          </OnboardingProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

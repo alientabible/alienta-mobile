@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { AccountCard } from '@/features/account/AccountCard';
+import { useOnboarding } from '@/features/onboarding/OnboardingProvider';
 import { type ThemeMode, useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'profile');
+  const { reset: resetOnboarding } = useOnboarding();
 
   const themeOptions: ThemeOption[] = [
     {
@@ -146,6 +148,13 @@ export default function ProfileScreen() {
           label={t('profile.privacy')}
           value={t('profile.privacyValue')}
         />
+        <View style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+        <PreferenceRow
+          icon={{ android: 'tune', ios: 'slider.horizontal.3' }}
+          label={t('profile.onboarding')}
+          onPress={() => void resetOnboarding()}
+          value={t('profile.onboardingValue')}
+        />
       </View>
     </Screen>
   );
@@ -154,17 +163,24 @@ export default function ProfileScreen() {
 function PreferenceRow({
   icon,
   label,
+  onPress,
   value,
 }: {
   icon: AppIconName;
   label: string;
+  onPress?: () => void;
   value: string;
 }) {
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'profile');
 
   return (
-    <View style={styles.preferenceRow}>
+    <Pressable
+      accessibilityRole={onPress ? 'button' : undefined}
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [styles.preferenceRow, pressed && styles.pressed]}
+    >
       <View style={[styles.preferenceIcon, { backgroundColor: palette.soft }]}>
         <AppIcon name={icon} size={20} tintColor={palette.accent} type="monochrome" />
       </View>
@@ -180,7 +196,7 @@ function PreferenceRow({
         tintColor={theme.colors.textMuted}
         type="monochrome"
       />
-    </View>
+    </Pressable>
   );
 }
 

@@ -3,6 +3,106 @@
     "back": "Volver",
     "close": "Cerrar"
   },
+  "onboarding": {
+    "eyebrow": "Tu comienzo en Alienta",
+    "progress": "Paso {{current}} de {{total}}",
+    "actions": {
+      "skip": "Omitir",
+      "back": "Atrás",
+      "continue": "Continuar",
+      "enter": "Entrar a Alienta"
+    },
+    "language": {
+      "title": "¿En qué idioma quieres vivir Alienta?",
+      "description": "Elegiremos el contenido, las lecturas y las ayudas que correspondan a tu idioma.",
+      "spanishColombia": "Español (Colombia)",
+      "available": "Disponible ahora",
+      "moreLanguages": "Estamos preparando Alienta para más idiomas. Solo mostraremos como seleccionables aquellos cuyo contenido haya sido revisado y esté listo."
+    },
+    "purpose": {
+      "title": "¿Qué te gustaría encontrar aquí?",
+      "description": "Esto nos ayudará a ordenar tu primera experiencia. Podrás cambiarlo más adelante.",
+      "feedback": "Gracias por contárnoslo. Quedan unas pocas preguntas para preparar una experiencia que se sienta realmente tuya.",
+      "options": {
+        "bible": "Acercarme a la Biblia",
+        "daily": "Recibir aliento para cada día",
+        "faith": "Fortalecer mi fe",
+        "calm": "Encontrar calma y orientación",
+        "habit": "Crear un hábito de lectura",
+        "unsure": "Todavía no lo tengo claro"
+      }
+    },
+    "familiarity": {
+      "title": "¿Cómo ha sido tu camino con la Biblia?",
+      "description": "No buscamos medir lo que sabes, sino acompañarte desde el lugar en el que estás.",
+      "feedback": "No existe un punto de partida incorrecto. Alienta puede acompañarte con claridad y a tu propio ritmo.",
+      "options": {
+        "new": "Estoy comenzando",
+        "newDescription": "Quiero conocerla paso a paso.",
+        "some": "La he leído algunas veces",
+        "someDescription": "Reconozco algunas historias y pasajes.",
+        "familiar": "Hace parte de mi vida",
+        "familiarDescription": "La leo y deseo seguir profundizando."
+      }
+    },
+    "emotion": {
+      "title": "¿Cómo llegas hoy?",
+      "description": "Elige la palabra que más se acerque. No tiene que describirlo todo perfectamente.",
+      "feedback": "Lo que sientes hoy merece ser escuchado. Podemos comenzar desde aquí, sin juicios y a tu ritmo.",
+      "options": {
+        "peaceful": "En paz",
+        "grateful": "Agradecido",
+        "joyful": "Alegre",
+        "hopeful": "Esperanzado",
+        "motivated": "Motivado",
+        "loved": "Amado",
+        "curious": "Curioso",
+        "reflective": "Reflexivo",
+        "tired": "Cansado",
+        "overwhelmed": "Abrumado",
+        "anxious": "Ansioso",
+        "confused": "Confundido",
+        "sad": "Triste",
+        "lonely": "Solo",
+        "frustrated": "Frustrado",
+        "angry": "Enojado",
+        "afraid": "Temeroso",
+        "hurt": "Herido",
+        "disappointed": "Decepcionado",
+        "guilty": "Culpable",
+        "discouraged": "Desanimado",
+        "disconnected": "Desconectado",
+        "unknown": "No sé cómo me siento"
+      }
+    },
+    "rhythm": {
+      "title": "Encuentra un ritmo que puedas sostener",
+      "description": "La constancia puede comenzar con unos pocos minutos. Elige algo amable y realista para ti.",
+      "feedback": "No necesitas avanzar deprisa. Volver con constancia puede ser más valioso que intentar leer demasiado en un solo día.",
+      "reminderTitle": "Recordar este momento",
+      "reminderDescription": "Guarda una hora preferida en este dispositivo. Alienta solicitará permiso antes de activar notificaciones.",
+      "earlier": "Treinta minutos antes",
+      "later": "Treinta minutos después",
+      "localTime": "Hora local",
+      "options": {
+        "three": "Con calma",
+        "threeDescription": "3 días por semana",
+        "five": "Con constancia",
+        "fiveDescription": "5 días por semana",
+        "daily": "Un momento cada día",
+        "dailyDescription": "7 días por semana",
+        "later": "Prefiero decidirlo después",
+        "laterDescription": "Podrás configurarlo desde tu perfil."
+      }
+    },
+    "account": {
+      "title": "Guarda tu camino, si así lo deseas",
+      "description": "Una cuenta permite preparar la sincronización entre dispositivos. Leer y reflexionar seguirá disponible sin registrarte.",
+      "promiseTitle": "Siempre gratuita",
+      "promiseDescription": "Alienta no tendrá anuncios ni avisos de pago. Puedes continuar como invitado y decidir más adelante.",
+      "providerNote": "El acceso con Google y Apple se incorporará cuando esos proveedores estén configurados y pueda probarse el flujo completo con seguridad."
+    }
+  },
   "tabs": {
     "home": "Hoy",
     "bible": "Biblia",
@@ -237,7 +337,7 @@
       "cardDescription": "Leer y reflexionar seguirá disponible sin iniciar sesión.",
       "loading": "Recuperando tu sesión…",
       "guestTitle": "Modo invitado activo",
-      "guestDescription": "La cuenta aparecerá al conectar las variables públicas y ejecutar las migraciones de Supabase. Ninguna función local queda bloqueada.",
+      "guestDescription": "Puedes leer, reflexionar y guardar tu progreso en este dispositivo. Cuando quieras llevarlo contigo a otros dispositivos, podrás crear una cuenta desde aquí.",
       "signInTab": "Entrar",
       "signUpTab": "Crear cuenta",
       "emailLabel": "Correo",
@@ -268,6 +368,8 @@
     "textSize": "Tamaño de texto",
     "textSizeValue": "Usa el ajuste del dispositivo",
     "privacy": "Privacidad",
-    "privacyValue": "Cuenta opcional; datos locales por defecto"
+    "privacyValue": "Cuenta opcional; datos locales por defecto",
+    "onboarding": "Personalización inicial",
+    "onboardingValue": "Revisar tus respuestas y ritmo de lectura"
   }
 }

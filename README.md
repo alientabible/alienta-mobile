@@ -4,7 +4,7 @@ Repositorio de trabajo para una aplicación móvil cristiana, accesible y multil
 
 ## Estado
 
-La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La Biblia local ya incorpora RVR1909 y WEB con lectura, búsqueda, favoritos y progreso sin conexión. También permite convertir versículos y reflexiones en tarjetas PNG verificables, listas para la hoja de compartir del dispositivo. La cuenta opcional ya tiene una base protegida con Supabase y modo invitado; la sincronización bíblica y la IA se añadirán por fases.
+La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye cinco áreas navegables, sistema visual editorial, modo claro/oscuro, componentes accesibles y la infraestructura inicial de traducciones en español. El Inicio ofrece un flujo local de reflexión simulada, sin IA ni persistencia. La Biblia local ya incorpora RVR1909 y WEB con lectura, búsqueda, favoritos y progreso sin conexión. También permite convertir versículos y reflexiones en tarjetas PNG verificables, listas para la hoja de compartir del dispositivo. La cuenta opcional ya tiene una base protegida con Supabase y modo invitado. Una bienvenida inicial omitible guarda localmente idioma, propósito, familiaridad bíblica, emoción y ritmo de lectura; la sincronización bíblica, los avisos del sistema y la IA se añadirán por fases.
 
 ## Documentación
 
@@ -23,7 +23,7 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye c
 
 ## Siguiente hito
 
-Conectar un proyecto Supabase de prueba, validar la cuenta opcional en iPhone y web, y después implementar la sincronización bíblica consentida.
+Validar la bienvenida y la cuenta opcional en iPhone y web, conectar un proyecto Supabase de prueba y después implementar la sincronización bíblica consentida.
 
 ## Desarrollo local
 

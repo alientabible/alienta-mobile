@@ -585,6 +585,7 @@ El tiempo depende de experiencia y disponibilidad. Para un equipo pequeño a tie
 
 ### Fase 3 — 2 a 4 semanas
 
+- bienvenida inicial omitible y preferencias locales;
 - cuentas opcionales y sincronización;
 - privacidad, exportación y borrado;
 - analítica sin texto sensible;
