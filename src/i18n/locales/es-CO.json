@@ -229,7 +229,34 @@
     "eyebrow": "Preferencias",
     "title": "Tu espacio, a tu manera.",
     "description": "Ajusta la experiencia sin perder la calma, la legibilidad ni tu privacidad.",
-    "preview": "El selector de apariencia ya funciona durante esta sesión. La persistencia y las demás preferencias se conectarán en sus bloques correspondientes.",
+    "preview": "La Biblia y la reflexión básica permanecen disponibles en este dispositivo aunque no crees una cuenta.",
+    "accountTitle": "Tu cuenta",
+    "accountDescription": "Inicia sesión solo si quieres preparar sincronización entre dispositivos.",
+    "account": {
+      "cardTitle": "Cuenta opcional",
+      "cardDescription": "Leer y reflexionar seguirá disponible sin iniciar sesión.",
+      "loading": "Recuperando tu sesión…",
+      "guestTitle": "Modo invitado activo",
+      "guestDescription": "La cuenta aparecerá al conectar las variables públicas y ejecutar las migraciones de Supabase. Ninguna función local queda bloqueada.",
+      "signInTab": "Entrar",
+      "signUpTab": "Crear cuenta",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "tu@correo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "accountConsent": "Entiendo que la cuenta es opcional y que Alienta guardará únicamente los datos necesarios para administrarla. El texto sobre cómo me siento no se sincroniza.",
+      "acceptRequired": "Confirma que entiendes el alcance de la cuenta opcional.",
+      "confirmEmail": "Revisa tu correo para confirmar la cuenta y luego inicia sesión.",
+      "processing": "Procesando…",
+      "signInAction": "Iniciar sesión",
+      "signUpAction": "Crear cuenta",
+      "sessionTitle": "Sesión protegida",
+      "syncTitle": "Permitir sincronización bíblica",
+      "syncDescription": "Guarda tu autorización por separado. Tus lecturas siguen locales hasta implementar la sincronización.",
+      "syncGranted": "Permiso guardado. La sincronización se habilitará en la siguiente etapa.",
+      "syncRevoked": "Permiso de sincronización retirado.",
+      "signOutAction": "Cerrar sesión"
+    },
     "appearanceTitle": "Apariencia",
     "appearanceDescription": "Elige cómo quieres ver Alienta en este dispositivo.",
     "themeSystem": "Sistema",
@@ -241,6 +268,6 @@
     "textSize": "Tamaño de texto",
     "textSizeValue": "Usa el ajuste del dispositivo",
     "privacy": "Privacidad",
-    "privacyValue": "Lectura básica sin cuenta"
+    "privacyValue": "Cuenta opcional; datos locales por defecto"
   }
 }

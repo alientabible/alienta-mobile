@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AuthProvider } from '@/core/auth/AuthProvider';
 import { BibleDatabaseProvider } from '@/features/bible/BibleDatabaseProvider';
 import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 
@@ -73,9 +74,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <BibleDatabaseProvider onReady={handleDatabaseReady}>
-          <RootNavigator />
-        </BibleDatabaseProvider>
+        <AuthProvider>
+          <BibleDatabaseProvider onReady={handleDatabaseReady}>
+            <RootNavigator />
+          </BibleDatabaseProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

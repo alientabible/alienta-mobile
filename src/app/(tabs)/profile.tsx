@@ -8,6 +8,7 @@ import { PreviewNotice } from '@/components/PreviewNotice';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
+import { AccountCard } from '@/features/account/AccountCard';
 import { type ThemeMode, useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
@@ -59,6 +60,14 @@ export default function ProfileScreen() {
       </View>
 
       <PreviewNotice tone="profile">{t('profile.preview')}</PreviewNotice>
+
+      <AppText accessibilityRole="header" style={styles.sectionTitle} variant="heading">
+        {t('profile.accountTitle')}
+      </AppText>
+      <AppText color="textMuted" style={styles.sectionDescription} variant="caption">
+        {t('profile.accountDescription')}
+      </AppText>
+      <AccountCard />
 
       <AppText accessibilityRole="header" style={styles.sectionTitle} variant="heading">
         {t('profile.appearanceTitle')}

@@ -196,6 +196,17 @@ Estado: **completado y listo para validación en dispositivo**.
 
 La lectura y la reflexión básica continúan disponibles sin cuenta.
 
+Estado: **implementado y pendiente de validación contra un proyecto Supabase de prueba**.
+
+- inicia siempre en modo invitado cuando no hay configuración o sesión;
+- permite crear una cuenta opcional e iniciar/cerrar sesión por correo;
+- conserva la sesión en iOS, Android y web mediante almacenamiento compatible con cada plataforma;
+- registra por separado la aceptación de cuenta, privacidad y futura sincronización bíblica;
+- no sincroniza todavía lecturas ni almacena el texto libre de “cómo te sientes”;
+- limita perfiles y consentimientos al propietario mediante RLS forzado;
+- no entrega permisos de lectura a `anon` ni expone la clave `service_role`;
+- incluye una auditoría SQL de políticas, privilegios y ausencia de campos sensibles.
+
 ### Bloque F. IA
 
 - `supabase/functions/generate-reflection/index.ts`
