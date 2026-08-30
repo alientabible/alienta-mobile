@@ -10,9 +10,11 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { BrandLockup } from '@/components/BrandLockup';
 import { AuthProvider } from '@/core/auth/AuthProvider';
 import { BibleDatabaseProvider } from '@/features/bible/BibleDatabaseProvider';
 import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow';
@@ -53,27 +55,38 @@ function RootNavigator() {
   );
 }
 
-function AppGate({
-  databaseReady,
-  fontsReady,
-}: {
-  databaseReady: boolean;
-  fontsReady: boolean;
-}) {
+function DatabaseBackedApp() {
+  const theme = useAppTheme();
+
+  return (
+    <View style={[styles.databaseShell, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.databaseLoading}>
+        <BrandLockup />
+        <ActivityIndicator color={theme.colors.primary} size="small" />
+      </View>
+      <View style={styles.databaseNavigator}>
+        <BibleDatabaseProvider>
+          <RootNavigator />
+        </BibleDatabaseProvider>
+      </View>
+    </View>
+  );
+}
+
+function AppGate({ fontsReady }: { fontsReady: boolean }) {
   const { completed, ready } = useOnboarding();
 
   useEffect(() => {
-    if (fontsReady && databaseReady && ready) {
+    if (fontsReady && ready) {
       void SplashScreen.hideAsync();
     }
-  }, [databaseReady, fontsReady, ready]);
+  }, [fontsReady, ready]);
 
-  if (!fontsReady || !databaseReady || !ready) return null;
-  return completed ? <RootNavigator /> : <OnboardingFlow />;
+  if (!fontsReady || !ready) return null;
+  return completed ? <DatabaseBackedApp /> : <OnboardingFlow />;
 }
 
 export default function RootLayout() {
-  const [databaseReady, setDatabaseReady] = useState(false);
   const [fontsLoaded, fontError] = useFonts({
     CormorantGaramond_500Medium,
     CormorantGaramond_500Medium_Italic,
@@ -83,7 +96,6 @@ export default function RootLayout() {
     Manrope_700Bold,
   });
 
-  const handleDatabaseReady = useCallback(() => setDatabaseReady(true), []);
   const fontsReady = fontsLoaded || Boolean(fontError);
 
   if (!fontsReady) {
@@ -95,12 +107,33 @@ export default function RootLayout() {
       <ThemeProvider>
         <AuthProvider>
           <OnboardingProvider>
-            <BibleDatabaseProvider onReady={handleDatabaseReady}>
-              <AppGate databaseReady={databaseReady} fontsReady={fontsReady} />
-            </BibleDatabaseProvider>
+            <AppGate fontsReady={fontsReady} />
           </OnboardingProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  databaseLoading: {
+    alignItems: 'center',
+    bottom: 0,
+    gap: 22,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  databaseNavigator: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  databaseShell: {
+    flex: 1,
+  },
+});
