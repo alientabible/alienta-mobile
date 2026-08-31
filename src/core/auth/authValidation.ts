@@ -5,12 +5,21 @@ export type AccountFormErrors = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export function validateAccountEmail(email: string) {
+  return EMAIL_PATTERN.test(email.trim()) ? undefined : 'Escribe un correo válido.';
+}
+
+export function validateNewPassword(password: string, confirmation: string) {
+  if (password.length < 8) return 'Usa al menos 8 caracteres.';
+  if (password !== confirmation) return 'Las contraseñas no coinciden.';
+  return undefined;
+}
+
 export function validateAccountForm(email: string, password: string): AccountFormErrors {
   const errors: AccountFormErrors = {};
 
-  if (!EMAIL_PATTERN.test(email.trim())) {
-    errors.email = 'Escribe un correo válido.';
-  }
+  const emailError = validateAccountEmail(email);
+  if (emailError) errors.email = emailError;
 
   if (password.length < 8) {
     errors.password = 'Usa al menos 8 caracteres.';
@@ -33,6 +42,16 @@ export function getAccountErrorMessage(error: unknown) {
   }
   if (message.includes('rate limit')) {
     return 'Espera un momento antes de volver a intentarlo.';
+  }
+  if (
+    message.includes('expired') ||
+    message.includes('invalid token') ||
+    message.includes('otp_expired')
+  ) {
+    return 'El enlace ya venció o fue utilizado. Solicita uno nuevo.';
+  }
+  if (message.includes('same password') || message.includes('different from the old password')) {
+    return 'Elige una contraseña diferente a la anterior.';
   }
   if (message.includes('network') || message.includes('fetch')) {
     return 'No pudimos conectar. Revisa tu conexión e inténtalo otra vez.';

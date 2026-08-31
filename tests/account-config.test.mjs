@@ -5,8 +5,14 @@ import test from 'node:test';
 import { resolveSupabaseConfiguration } from '../src/core/api/supabaseConfig.ts';
 import {
   getAccountErrorMessage,
+  validateAccountEmail,
   validateAccountForm,
+  validateNewPassword,
 } from '../src/core/auth/authValidation.ts';
+import {
+  getAuthRedirectError,
+  parseAuthRedirectUrl,
+} from '../src/core/auth/authRedirect.ts';
 
 test('mantiene modo invitado cuando Supabase no está configurado', () => {
   assert.deepEqual(resolveSupabaseConfiguration(undefined, undefined), { status: 'missing' });
@@ -66,6 +72,43 @@ test('valida correo y contraseña sin enviar solicitudes', () => {
     password: 'Usa al menos 8 caracteres.',
   });
   assert.deepEqual(validateAccountForm('persona@ejemplo.com', 'segura123'), {});
+  assert.equal(validateAccountEmail('persona@ejemplo.com'), undefined);
+  assert.equal(validateAccountEmail('correo-invalido'), 'Escribe un correo válido.');
+  assert.equal(validateNewPassword('segura123', 'segura123'), undefined);
+  assert.equal(validateNewPassword('segura123', 'distinta123'), 'Las contraseñas no coinciden.');
+});
+
+test('interpreta retornos de Supabase por fragmento y por PKCE', () => {
+  assert.deepEqual(
+    parseAuthRedirectUrl(
+      'https://alienta.app/auth/callback#access_token=token-a&refresh_token=token-r&type=recovery',
+    ),
+    {
+      accessToken: 'token-a',
+      code: null,
+      errorCode: null,
+      errorDescription: null,
+      intent: null,
+      refreshToken: 'token-r',
+      type: 'recovery',
+    },
+  );
+
+  assert.equal(
+    parseAuthRedirectUrl('alienta://auth/callback?code=pkce-code&intent=recovery').code,
+    'pkce-code',
+  );
+  assert.equal(
+    parseAuthRedirectUrl('alienta://auth/callback?code=pkce-code&intent=recovery').intent,
+    'recovery',
+  );
+});
+
+test('detecta errores de enlaces sin exponer tokens', () => {
+  const parameters = parseAuthRedirectUrl(
+    'https://alienta.app/auth/callback#error=access_denied&error_description=Email%20link%20expired',
+  );
+  assert.equal(getAuthRedirectError(parameters), 'Email link expired');
 });
 
 test('traduce errores de autenticación sin revelar detalles internos', () => {

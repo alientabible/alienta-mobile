@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 import {
   createContext,
   type PropsWithChildren,
@@ -12,6 +13,7 @@ import {
 import { AppState, Platform } from 'react-native';
 
 import { getSupabaseClient, supabaseConfiguration } from '@/core/api/supabase';
+import { getAuthRedirectError, parseAuthRedirectUrl } from '@/core/auth/authRedirect';
 
 const ACCOUNT_POLICY_VERSION = 'account-pilot-2026-08-30';
 const PRIVACY_POLICY_VERSION = 'privacy-pilot-2026-08-30';
@@ -22,18 +24,32 @@ type SignUpResult = {
   confirmationRequired: boolean;
 };
 
+export type AuthRedirectResult = {
+  kind: 'confirmation' | 'recovery';
+};
+
 type AuthContextValue = {
   bibleSyncConsent: boolean;
+  completeAuthRedirect: (url: string) => Promise<AuthRedirectResult>;
   configurationStatus: typeof supabaseConfiguration.status;
   initializing: boolean;
+  requestPasswordReset: (email: string) => Promise<void>;
   session: Session | null;
   setBibleSyncConsent: (granted: boolean) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
+  updatePassword: (password: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function getAuthRedirectUrl(intent: 'confirmation' | 'recovery') {
+  const configuredRedirect = process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL?.trim();
+  const redirectUrl = configuredRedirect || Linking.createURL('auth/callback');
+  const separator = redirectUrl.includes('?') ? '&' : '?';
+  return `${redirectUrl}${separator}intent=${intent}`;
+}
 
 async function savePendingConsent(email: string) {
   await AsyncStorage.setItem(
@@ -178,6 +194,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         password,
         options: {
           data: { locale: 'es-CO' },
+          emailRedirectTo: getAuthRedirectUrl('confirmation'),
         },
       });
 
@@ -190,6 +207,67 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return { confirmationRequired: !data.session };
     },
     [recordAccountConsent, supabase],
+  );
+
+  const requestPasswordReset = useCallback(
+    async (email: string) => {
+      if (!supabase) throw new Error('Supabase is not configured');
+
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+        { redirectTo: getAuthRedirectUrl('recovery') },
+      );
+
+      if (error) throw error;
+    },
+    [supabase],
+  );
+
+  const completeAuthRedirect = useCallback(
+    async (url: string): Promise<AuthRedirectResult> => {
+      if (!supabase) throw new Error('Supabase is not configured');
+
+      const parameters = parseAuthRedirectUrl(url);
+      const redirectError = getAuthRedirectError(parameters);
+      if (redirectError) throw new Error(redirectError);
+
+      let nextSession: Session | null = null;
+
+      if (parameters.code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(parameters.code);
+        if (error) throw error;
+        nextSession = data.session;
+      } else if (parameters.accessToken && parameters.refreshToken) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: parameters.accessToken,
+          refresh_token: parameters.refreshToken,
+        });
+        if (error) throw error;
+        nextSession = data.session;
+      }
+
+      if (!nextSession) {
+        throw new Error('The authentication link is invalid or has expired');
+      }
+
+      const isRecovery = parameters.type === 'recovery' || parameters.intent === 'recovery';
+
+      if (!isRecovery) {
+        await recordAccountConsent(nextSession);
+      }
+
+      return { kind: isRecovery ? 'recovery' : 'confirmation' };
+    },
+    [recordAccountConsent, supabase],
+  );
+
+  const updatePassword = useCallback(
+    async (password: string) => {
+      if (!supabase) throw new Error('Supabase is not configured');
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+    },
+    [supabase],
   );
 
   const signOut = useCallback(async () => {
@@ -221,15 +299,29 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const value = useMemo<AuthContextValue>(
     () => ({
       bibleSyncConsent,
+      completeAuthRedirect,
       configurationStatus: supabaseConfiguration.status,
       initializing,
+      requestPasswordReset,
       session,
       setBibleSyncConsent,
       signIn,
       signOut,
       signUp,
+      updatePassword,
     }),
-    [bibleSyncConsent, initializing, session, setBibleSyncConsent, signIn, signOut, signUp],
+    [
+      bibleSyncConsent,
+      completeAuthRedirect,
+      initializing,
+      requestPasswordReset,
+      session,
+      setBibleSyncConsent,
+      signIn,
+      signOut,
+      signUp,
+      updatePassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
