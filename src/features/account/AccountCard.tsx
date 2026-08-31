@@ -12,13 +12,17 @@ import {
 import { AppButton } from '@/components/AppButton';
 import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
-import { getAccountErrorMessage, validateAccountForm } from '@/core/auth/authValidation';
+import {
+  getAccountErrorMessage,
+  validateAccountEmail,
+  validateAccountForm,
+} from '@/core/auth/authValidation';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
 
-type FormMode = 'signIn' | 'signUp';
+type FormMode = 'recover' | 'signIn' | 'signUp';
 
 export function AccountCard() {
   const { t } = useTranslation();
@@ -28,6 +32,7 @@ export function AccountCard() {
     bibleSyncConsent,
     configurationStatus,
     initializing,
+    requestPasswordReset,
     session,
     setBibleSyncConsent,
     signIn,
@@ -43,6 +48,12 @@ export function AccountCard() {
 
   const formErrors = useMemo(() => validateAccountForm(email, password), [email, password]);
   const formValid = !formErrors.email && !formErrors.password;
+
+  function selectMode(nextMode: FormMode) {
+    setMode(nextMode);
+    setFeedback(null);
+    setPassword('');
+  }
 
   async function handleSubmit() {
     if (!formValid || (mode === 'signUp' && !acceptedAccountTerms)) {
@@ -68,6 +79,25 @@ export function AccountCard() {
           setPassword('');
         }
       }
+    } catch (error) {
+      setFeedback(getAccountErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    const emailError = validateAccountEmail(email);
+    if (emailError) {
+      setFeedback(emailError);
+      return;
+    }
+
+    setBusy(true);
+    setFeedback(null);
+    try {
+      await requestPasswordReset(email);
+      setFeedback(t('profile.account.recoverySent'));
     } catch (error) {
       setFeedback(getAccountErrorMessage(error));
     } finally {
@@ -149,36 +179,42 @@ export function AccountCard() {
 
       {!initializing && configurationStatus === 'ready' && !session ? (
         <View style={styles.form}>
-          <View style={[styles.segmented, { backgroundColor: theme.colors.surface }]}>
-            {(['signIn', 'signUp'] as const).map((option) => {
-              const selected = mode === option;
-              return (
-                <Pressable
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected }}
-                  key={option}
-                  onPress={() => {
-                    setMode(option);
-                    setFeedback(null);
-                  }}
-                  style={[
-                    styles.segment,
-                    selected && { backgroundColor: palette.soft },
-                  ]}
-                >
-                  <AppText
-                    color={selected ? 'text' : 'textMuted'}
-                    style={styles.segmentLabel}
-                    variant="caption"
+          {mode === 'recover' ? (
+            <View style={[styles.recoveryIntro, { backgroundColor: palette.soft }]}>
+              <AppText style={styles.statusTitle}>{t('profile.account.recoveryTitle')}</AppText>
+              <AppText color="textMuted" style={styles.statusText} variant="caption">
+                {t('profile.account.recoveryDescription')}
+              </AppText>
+            </View>
+          ) : (
+            <View style={[styles.segmented, { backgroundColor: theme.colors.surface }]}>
+              {(['signIn', 'signUp'] as const).map((option) => {
+                const selected = mode === option;
+                return (
+                  <Pressable
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    key={option}
+                    onPress={() => selectMode(option)}
+                    style={[
+                      styles.segment,
+                      selected && { backgroundColor: palette.soft },
+                    ]}
                   >
-                    {option === 'signIn'
-                      ? t('profile.account.signInTab')
-                      : t('profile.account.signUpTab')}
-                  </AppText>
-                </Pressable>
-              );
-            })}
-          </View>
+                    <AppText
+                      color={selected ? 'text' : 'textMuted'}
+                      style={styles.segmentLabel}
+                      variant="caption"
+                    >
+                      {option === 'signIn'
+                        ? t('profile.account.signInTab')
+                        : t('profile.account.signUpTab')}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
 
           <View style={styles.fieldGroup}>
             <AppText style={styles.fieldLabel} variant="caption">
@@ -204,29 +240,43 @@ export function AccountCard() {
             />
           </View>
 
-          <View style={styles.fieldGroup}>
-            <AppText style={styles.fieldLabel} variant="caption">
-              {t('profile.account.passwordLabel')}
-            </AppText>
-            <TextInput
-              accessibilityLabel={t('profile.account.passwordLabel')}
-              autoCapitalize="none"
-              autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
-              onChangeText={setPassword}
-              placeholder={t('profile.account.passwordPlaceholder')}
-              placeholderTextColor={theme.colors.textMuted}
-              secureTextEntry
-              style={[
-                styles.input,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.outline,
-                  color: theme.colors.text,
-                },
-              ]}
-              value={password}
-            />
-          </View>
+          {mode !== 'recover' ? (
+            <View style={styles.fieldGroup}>
+              <AppText style={styles.fieldLabel} variant="caption">
+                {t('profile.account.passwordLabel')}
+              </AppText>
+              <TextInput
+                accessibilityLabel={t('profile.account.passwordLabel')}
+                autoCapitalize="none"
+                autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
+                onChangeText={setPassword}
+                placeholder={t('profile.account.passwordPlaceholder')}
+                placeholderTextColor={theme.colors.textMuted}
+                secureTextEntry
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.outline,
+                    color: theme.colors.text,
+                  },
+                ]}
+                value={password}
+              />
+            </View>
+          ) : null}
+
+          {mode === 'signIn' ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => selectMode('recover')}
+              style={styles.textAction}
+            >
+              <AppText style={[styles.textActionLabel, { color: palette.accent }]} variant="caption">
+                {t('profile.account.forgotPassword')}
+              </AppText>
+            </Pressable>
+          ) : null}
 
           {mode === 'signUp' ? (
             <Pressable
@@ -264,12 +314,26 @@ export function AccountCard() {
             label={
               busy
                 ? t('profile.account.processing')
-                : mode === 'signIn'
+                : mode === 'recover'
+                  ? t('profile.account.recoveryAction')
+                  : mode === 'signIn'
                   ? t('profile.account.signInAction')
                   : t('profile.account.signUpAction')
             }
-            onPress={() => void handleSubmit()}
+            onPress={() => void (mode === 'recover' ? handlePasswordReset() : handleSubmit())}
           />
+
+          {mode === 'recover' ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => selectMode('signIn')}
+              style={styles.textAction}
+            >
+              <AppText style={[styles.textActionLabel, { color: palette.accent }]} variant="caption">
+                {t('profile.account.backToSignIn')}
+              </AppText>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 
@@ -380,6 +444,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 4,
   },
+  recoveryIntro: {
+    borderRadius: 15,
+    padding: 14,
+  },
   segment: {
     alignItems: 'center',
     borderRadius: 12,
@@ -447,5 +515,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 17,
     marginTop: 14,
+  },
+  textAction: {
+    alignSelf: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  textActionLabel: {
+    fontFamily: fonts.sansSemibold,
+    fontSize: 12,
   },
 });

@@ -36,11 +36,51 @@ npm install
 npx expo start --tunnel --go --clear
 ```
 
-## 4. Confirmación de correo
+## 4. Configurar los retornos de autenticación
 
-Para la prueba inicial se puede mantener la confirmación de correo habilitada. Después de crear una cuenta, confirma el mensaje recibido y vuelve a **Perfil → Tu cuenta** para iniciar sesión.
+En **Authentication → URL Configuration** cambia el `Site URL` que viene en
+`localhost:3000` por la URL web activa de Alienta. Agrega también estas Redirect URLs:
 
-Antes de publicar, configura el enlace profundo de confirmación para que el correo regrese directamente a Alienta. No se debe desactivar la confirmación en producción solo para evitar este paso.
+```text
+alienta://**
+exp://**
+http://localhost:8081/**
+https://TU_CODESPACE-8081.app.github.dev/**
+```
+
+`exp://**` se usa únicamente durante las pruebas con Expo Go y debe retirarse al
+publicar. En producción conserva la dirección exacta de la web oficial y
+`alienta://auth/callback`; evita comodines amplios.
+
+La aplicación envía una dirección de retorno distinta según dónde se ejecute:
+
+- web: `https://.../auth/callback`;
+- Expo Go: `exp://.../--/auth/callback`;
+- compilación instalada: `alienta://auth/callback`.
+
+Si se dispone de una web estable, puede fijarse la URL completa en `.env.local`:
+
+```dotenv
+EXPO_PUBLIC_AUTH_REDIRECT_URL=https://alienta.app/auth/callback
+```
+
+Déjala vacía mientras se quiera que cada plataforma vuelva a sí misma.
+
+Mantén la confirmación de correo habilitada. La ruta `auth/callback` elimina los
+tokens de la barra del navegador después de crear la sesión y muestra un estado
+propio de Alienta. Si se personalizan las plantillas de correo, comprueba que
+utilicen `{{ .RedirectTo }}` para respetar la dirección enviada por la app.
+
+## 5. Recuperación de contraseña
+
+Desde **Perfil → Tu cuenta → Olvidé mi contraseña**, Alienta llama a
+`resetPasswordForEmail` con la misma ruta de retorno. El enlace abre una pantalla
+pública que restaura temporalmente la sesión, solicita dos veces la contraseña
+nueva y la guarda mediante `updateUser`.
+
+Por seguridad, el formulario nunca informa si un correo está registrado. El
+servicio de correo de prueba de Supabase tiene una cuota reducida; para producción
+se debe configurar SMTP propio.
 
 ## Alcance de privacidad
 

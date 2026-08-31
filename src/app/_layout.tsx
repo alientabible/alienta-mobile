@@ -7,7 +7,7 @@ import { Manrope_400Regular } from '@expo-google-fonts/manrope/400Regular';
 import { Manrope_600SemiBold } from '@expo-google-fonts/manrope/600SemiBold';
 import { Manrope_700Bold } from '@expo-google-fonts/manrope/700Bold';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -50,6 +50,7 @@ function RootNavigator() {
         <Stack.Screen name="bible/sources" options={bibleRouteOptions} />
         <Stack.Screen name="reflection/[id]" options={{ animation: 'fade' }} />
         <Stack.Screen name="share" options={bibleRouteOptions} />
+        <Stack.Screen name="auth/callback" options={{ animation: 'fade', presentation: 'card' }} />
       </Stack>
     </>
   );
@@ -75,6 +76,7 @@ function DatabaseBackedApp() {
 
 function AppGate({ fontsReady }: { fontsReady: boolean }) {
   const { completed, ready } = useOnboarding();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (fontsReady && ready) {
@@ -83,6 +85,7 @@ function AppGate({ fontsReady }: { fontsReady: boolean }) {
   }, [fontsReady, ready]);
 
   if (!fontsReady || !ready) return null;
+  if (pathname.startsWith('/auth/')) return <RootNavigator />;
   return completed ? <DatabaseBackedApp /> : <OnboardingFlow />;
 }
 
