@@ -97,7 +97,7 @@
     },
     "account": {
       "title": "Guarda tu camino, si así lo deseas",
-      "description": "Una cuenta permite preparar la sincronización entre dispositivos. Leer y reflexionar seguirá disponible sin registrarte.",
+      "description": "Una cuenta permite sincronizar tu última lectura y favoritos entre dispositivos. Leer y reflexionar seguirá disponible sin registrarte.",
       "promiseTitle": "Siempre gratuita",
       "promiseDescription": "Alienta no tendrá anuncios ni avisos de pago. Puedes continuar como invitado y decidir más adelante.",
       "providerNote": "El acceso con Google y Apple se incorporará cuando esos proveedores estén configurados y pueda probarse el flujo completo con seguridad."
@@ -331,7 +331,7 @@
     "description": "Ajusta la experiencia sin perder la calma, la legibilidad ni tu privacidad.",
     "preview": "La Biblia y la reflexión básica permanecen disponibles en este dispositivo aunque no crees una cuenta.",
     "accountTitle": "Tu cuenta",
-    "accountDescription": "Inicia sesión solo si quieres preparar sincronización entre dispositivos.",
+    "accountDescription": "Inicia sesión solo si quieres sincronizar tu última lectura y favoritos entre dispositivos.",
     "account": {
       "cardTitle": "Cuenta opcional",
       "cardDescription": "Leer y reflexionar seguirá disponible sin iniciar sesión.",
@@ -358,9 +358,13 @@
       "signUpAction": "Crear cuenta",
       "sessionTitle": "Sesión protegida",
       "syncTitle": "Permitir sincronización bíblica",
-      "syncDescription": "Guarda tu autorización por separado. Tus lecturas siguen locales hasta implementar la sincronización.",
-      "syncGranted": "Permiso guardado. La sincronización se habilitará en la siguiente etapa.",
-      "syncRevoked": "Permiso de sincronización retirado.",
+      "syncDescription": "Sincroniza únicamente tu última lectura y las referencias de tus favoritos. El texto bíblico y tus preferencias permanecen en el dispositivo.",
+      "syncGranted": "Permiso guardado. La sincronización está activa.",
+      "syncRevoked": "Permiso retirado. Tus datos locales permanecen en este dispositivo.",
+      "syncStatusWaiting": "Preparando sincronización…",
+      "syncStatusSyncing": "Sincronizando…",
+      "syncStatusSynced": "Sincronizado",
+      "syncStatusError": "Sin conexión. Volveremos a intentarlo automáticamente.",
       "signOutAction": "Cerrar sesión"
     },
     "appearanceTitle": "Apariencia",

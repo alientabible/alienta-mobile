@@ -17,6 +17,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BrandLockup } from '@/components/BrandLockup';
 import { AuthProvider } from '@/core/auth/AuthProvider';
 import { BibleDatabaseProvider } from '@/features/bible/BibleDatabaseProvider';
+import { BibleSyncProvider } from '@/features/bible/BibleSyncProvider';
 import { OnboardingFlow } from '@/features/onboarding/OnboardingFlow';
 import {
   OnboardingProvider,
@@ -67,7 +68,9 @@ function DatabaseBackedApp() {
       </View>
       <View style={styles.databaseNavigator}>
         <BibleDatabaseProvider>
-          <RootNavigator />
+          <BibleSyncProvider>
+            <RootNavigator />
+          </BibleSyncProvider>
         </BibleDatabaseProvider>
       </View>
     </View>

@@ -92,7 +92,9 @@ se debe configurar SMTP propio.
 - Ninguna tabla remota guarda el contenido textual de los versículos.
 - El tamaño de texto continúa siendo una preferencia local de cada dispositivo.
 - Las políticas RLS bloquean estas tablas si no existe un consentimiento `bible_sync` vigente.
-- `bible_sync` sigue siendo la autorización explícita: este incremento prepara el esquema y el siguiente conectará el cliente.
+- `bible_sync` sigue siendo la autorización explícita: sin ese permiso el cliente no lee ni escribe estas tablas y conserva el funcionamiento local.
+- Con permiso activo, el cliente reconcilia al iniciar, al volver al primer plano, después de un cambio local y cada 30 segundos mientras permanece abierto.
+- El tamaño de texto y el contenido bíblico siguen siendo exclusivamente locales.
 - El texto libre de “cómo te sientes” no se guarda ni se sincroniza.
 - La clave pública es segura en el cliente únicamente junto con RLS; la clave `service_role` nunca debe llegar a la app.
 

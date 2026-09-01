@@ -9,6 +9,12 @@ import type {
   ParsedBibleReference,
   ReadingLocation,
 } from '@/features/bible/types';
+import { notifyBibleLocalChange } from './syncEvents.ts';
+import type {
+  BibleSyncFavoriteRecord,
+  BibleSyncReadingRecord,
+  BibleSyncSnapshot,
+} from '@/features/bible/syncModel';
 
 type TranslationRow = {
   id: BibleVersionId;
@@ -97,13 +103,31 @@ export async function initializeBibleDatabase(database: SQLiteDatabase) {
     );
     CREATE TABLE IF NOT EXISTS favorite_verses (
       verse_key TEXT PRIMARY KEY NOT NULL,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      favorited INTEGER NOT NULL DEFAULT 1 CHECK (favorited IN (0, 1)),
+      updated_at TEXT NOT NULL
     ) WITHOUT ROWID;
     CREATE TABLE IF NOT EXISTS user_preferences (
       key TEXT PRIMARY KEY NOT NULL,
       value TEXT NOT NULL
     ) WITHOUT ROWID;
   `);
+
+  const favoriteColumns = await database.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(favorite_verses)',
+  );
+  const favoriteColumnNames = new Set(favoriteColumns.map((column) => column.name));
+  if (!favoriteColumnNames.has('favorited')) {
+    await database.execAsync(
+      'ALTER TABLE favorite_verses ADD COLUMN favorited INTEGER NOT NULL DEFAULT 1;',
+    );
+  }
+  if (!favoriteColumnNames.has('updated_at')) {
+    await database.execAsync('ALTER TABLE favorite_verses ADD COLUMN updated_at TEXT;');
+  }
+  await database.execAsync(
+    'UPDATE favorite_verses SET updated_at = created_at WHERE updated_at IS NULL;',
+  );
 }
 
 export async function getTranslations(database: SQLiteDatabase) {
@@ -247,6 +271,7 @@ export async function getLastReading(database: SQLiteDatabase): Promise<ReadingL
 }
 
 export async function saveLastReading(database: SQLiteDatabase, location: ReadingLocation) {
+  const updatedAt = new Date().toISOString();
   await database.runAsync(
     `INSERT INTO reading_progress (singleton, version_id, book_id, chapter, verse, updated_at)
      VALUES (1, ?, ?, ?, ?, ?)
@@ -260,35 +285,127 @@ export async function saveLastReading(database: SQLiteDatabase, location: Readin
     location.bookId,
     location.chapter,
     location.verse,
-    new Date().toISOString(),
+    updatedAt,
   );
+  notifyBibleLocalChange();
 }
 
 export async function getFavoriteKeys(database: SQLiteDatabase, verseKeys: string[]) {
   if (verseKeys.length === 0) return new Set<string>();
   const placeholders = verseKeys.map(() => '?').join(',');
   const rows = await database.getAllAsync<{ verse_key: string }>(
-    `SELECT verse_key FROM favorite_verses WHERE verse_key IN (${placeholders})`,
+    `SELECT verse_key FROM favorite_verses
+     WHERE favorited = 1 AND verse_key IN (${placeholders})`,
     verseKeys,
   );
   return new Set(rows.map((row) => row.verse_key));
 }
 
 export async function toggleFavorite(database: SQLiteDatabase, verseKey: string) {
-  const existing = await database.getFirstAsync<{ verse_key: string }>(
-    'SELECT verse_key FROM favorite_verses WHERE verse_key = ?',
+  const existing = await database.getFirstAsync<{ favorited: number }>(
+    'SELECT favorited FROM favorite_verses WHERE verse_key = ?',
     verseKey,
   );
-  if (existing) {
-    await database.runAsync('DELETE FROM favorite_verses WHERE verse_key = ?', verseKey);
-    return false;
-  }
+  const favorited = existing?.favorited !== 1;
+  const updatedAt = new Date().toISOString();
   await database.runAsync(
-    'INSERT INTO favorite_verses (verse_key, created_at) VALUES (?, ?)',
+    `INSERT INTO favorite_verses (verse_key, created_at, favorited, updated_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(verse_key) DO UPDATE SET
+       favorited = excluded.favorited,
+       updated_at = excluded.updated_at`,
     verseKey,
-    new Date().toISOString(),
+    updatedAt,
+    favorited ? 1 : 0,
+    updatedAt,
   );
-  return true;
+  notifyBibleLocalChange();
+  return favorited;
+}
+
+export async function getLocalBibleSyncSnapshot(
+  database: SQLiteDatabase,
+): Promise<BibleSyncSnapshot> {
+  const readingRow = await database.getFirstAsync<{
+    book_id: string;
+    chapter: number;
+    updated_at: string;
+    verse: number | null;
+    version_id: BibleVersionId;
+  }>(
+    `SELECT version_id, book_id, chapter, verse, updated_at
+     FROM reading_progress WHERE singleton = 1`,
+  );
+  const favoriteRows = await database.getAllAsync<{
+    favorited: number;
+    updated_at: string;
+    verse_key: string;
+  }>(
+    `SELECT verse_key, favorited, coalesce(updated_at, created_at) AS updated_at
+     FROM favorite_verses`,
+  );
+
+  return {
+    reading: readingRow
+      ? {
+          bookId: readingRow.book_id,
+          chapter: readingRow.chapter,
+          updatedAt: readingRow.updated_at,
+          verse: readingRow.verse,
+          versionId: readingRow.version_id,
+        }
+      : null,
+    favorites: favoriteRows.map((row) => ({
+      favorited: row.favorited === 1,
+      updatedAt: row.updated_at,
+      verseKey: row.verse_key,
+    })),
+  };
+}
+
+export async function applySyncedReadingProgress(
+  database: SQLiteDatabase,
+  reading: BibleSyncReadingRecord,
+) {
+  await database.runAsync(
+    `INSERT INTO reading_progress (singleton, version_id, book_id, chapter, verse, updated_at)
+     VALUES (1, ?, ?, ?, ?, ?)
+     ON CONFLICT(singleton) DO UPDATE SET
+       version_id = excluded.version_id,
+       book_id = excluded.book_id,
+       chapter = excluded.chapter,
+       verse = excluded.verse,
+       updated_at = excluded.updated_at
+     WHERE excluded.updated_at > reading_progress.updated_at`,
+    reading.versionId,
+    reading.bookId,
+    reading.chapter,
+    reading.verse,
+    reading.updatedAt,
+  );
+}
+
+export async function applySyncedFavorite(
+  database: SQLiteDatabase,
+  favorite: BibleSyncFavoriteRecord,
+) {
+  await database.runAsync(
+    `INSERT INTO favorite_verses (verse_key, created_at, favorited, updated_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(verse_key) DO UPDATE SET
+       favorited = excluded.favorited,
+       updated_at = excluded.updated_at
+     WHERE excluded.updated_at > favorite_verses.updated_at
+       OR (
+         excluded.updated_at = favorite_verses.updated_at
+         AND excluded.favorited = 0
+         AND favorite_verses.favorited = 1
+       )`,
+    favorite.verseKey,
+    favorite.updatedAt,
+    favorite.favorited ? 1 : 0,
+    favorite.updatedAt,
+  );
 }
 
 export async function getReaderTextScale(database: SQLiteDatabase) {

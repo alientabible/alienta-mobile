@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BibleVersionSwitch } from '@/features/bible/BibleVersionSwitch';
+import { useBibleSync } from '@/features/bible/BibleSyncProvider';
 import {
   CHAPTER_END_THRESHOLD,
   resolveChapterEndLock,
@@ -79,6 +80,7 @@ export function BibleReader({
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
   const reduceMotion = useReducedMotionPreference();
+  const { revision: bibleSyncRevision } = useBibleSync();
   const listRef = useRef<FlatList<BibleVerse>>(null);
   const [initialLoadingOpacity] = useState(
     () => new Animated.Value(initialVerse === null ? 0 : 1),
@@ -517,6 +519,17 @@ export function BibleReader({
       active = false;
     };
   }, [bookId, cancelPendingProgressSave, chapter, database, selectedBook, versionId]);
+
+  useEffect(() => {
+    if (verses.length === 0) return undefined;
+    let active = true;
+    void getFavoriteKeys(database, verses.map((verse) => verse.key)).then((favorites) => {
+      if (active) setFavoriteKeys(favorites);
+    });
+    return () => {
+      active = false;
+    };
+  }, [bibleSyncRevision, database, verses]);
 
   useEffect(() => {
     return () => {

@@ -17,6 +17,7 @@ import {
   getTranslations,
   getVerse,
 } from '@/features/bible/repository';
+import { useBibleSync } from '@/features/bible/BibleSyncProvider';
 import type {
   BibleBook,
   BibleTranslation,
@@ -45,6 +46,7 @@ export default function BibleScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
+  const { revision: bibleSyncRevision } = useBibleSync();
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastReading, setLastReading] = useState<ReadingLocation | null>(null);
   const [lastBook, setLastBook] = useState<BibleBook | null>(null);
@@ -52,6 +54,7 @@ export default function BibleScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      void bibleSyncRevision;
       let active = true;
       void Promise.all([
         getVerse(database, 'rvr1909', 'PSA', 46, 10),
@@ -68,7 +71,7 @@ export default function BibleScreen() {
       return () => {
         active = false;
       };
-    }, [database]),
+    }, [bibleSyncRevision, database]),
   );
 
   const continueTitle = lastBook && lastReading

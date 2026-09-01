@@ -18,6 +18,7 @@ import {
   validateAccountForm,
 } from '@/core/auth/authValidation';
 import { useAuth } from '@/core/auth/AuthProvider';
+import { useBibleSync } from '@/features/bible/BibleSyncProvider';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
@@ -28,6 +29,7 @@ export function AccountCard() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'profile');
+  const { status: bibleSyncStatus } = useBibleSync();
   const {
     bibleSyncConsent,
     configurationStatus,
@@ -48,6 +50,17 @@ export function AccountCard() {
 
   const formErrors = useMemo(() => validateAccountForm(email, password), [email, password]);
   const formValid = !formErrors.email && !formErrors.password;
+  const bibleSyncStatusLabel = bibleSyncConsent
+    ? t(
+        bibleSyncStatus === 'syncing'
+          ? 'profile.account.syncStatusSyncing'
+          : bibleSyncStatus === 'error'
+            ? 'profile.account.syncStatusError'
+            : bibleSyncStatus === 'synced'
+              ? 'profile.account.syncStatusSynced'
+              : 'profile.account.syncStatusWaiting',
+      )
+    : null;
 
   function selectMode(nextMode: FormMode) {
     setMode(nextMode);
@@ -352,6 +365,15 @@ export function AccountCard() {
               <AppText color="textMuted" style={styles.statusText} variant="caption">
                 {t('profile.account.syncDescription')}
               </AppText>
+              {bibleSyncStatusLabel ? (
+                <AppText
+                  accessibilityLiveRegion="polite"
+                  style={[styles.syncStatus, { color: palette.accent }]}
+                  variant="caption"
+                >
+                  {bibleSyncStatusLabel}
+                </AppText>
+              ) : null}
             </View>
             <Switch
               accessibilityLabel={t('profile.account.syncTitle')}
@@ -505,6 +527,9 @@ const styles = StyleSheet.create({
   },
   syncCopy: {
     flex: 1,
+  },
+  syncStatus: {
+    marginTop: 6,
   },
   syncTitle: {
     fontFamily: fonts.sansSemibold,
