@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BibleVersionSwitch } from '@/features/bible/BibleVersionSwitch';
+import { useBibleSync } from '@/features/bible/BibleSyncProvider';
 import {
   CHAPTER_END_THRESHOLD,
   resolveChapterEndLock,
@@ -79,6 +80,7 @@ export function BibleReader({
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
   const reduceMotion = useReducedMotionPreference();
+  const { revision: bibleSyncRevision } = useBibleSync();
   const listRef = useRef<FlatList<BibleVerse>>(null);
   const [initialLoadingOpacity] = useState(
     () => new Animated.Value(initialVerse === null ? 0 : 1),
@@ -519,6 +521,17 @@ export function BibleReader({
   }, [bookId, cancelPendingProgressSave, chapter, database, selectedBook, versionId]);
 
   useEffect(() => {
+    if (verses.length === 0) return undefined;
+    let active = true;
+    void getFavoriteKeys(database, verses.map((verse) => verse.key)).then((favorites) => {
+      if (active) setFavoriteKeys(favorites);
+    });
+    return () => {
+      active = false;
+    };
+  }, [bibleSyncRevision, database, verses]);
+
+  useEffect(() => {
     return () => {
       cancelPendingProgressSave();
       if (initialPositionFallbackTimerRef.current) {
@@ -830,10 +843,13 @@ export function BibleReader({
 
       {showInitialLoading ? (
         <Animated.View
-          pointerEvents="none"
           style={[
             styles.initialLoadingOverlay,
-            { backgroundColor: theme.colors.background, opacity: initialLoadingOpacity },
+            {
+              backgroundColor: theme.colors.background,
+              opacity: initialLoadingOpacity,
+              pointerEvents: 'none',
+            },
           ]}
         >
           <View style={styles.initialLoadingContent}>
@@ -1131,15 +1147,27 @@ const BibleVerseRow = memo(function BibleVerseRow({
           onPress={() => void onFavorite(item.key)}
           style={({ pressed }) => [styles.verseActionButton, pressed && styles.pressed]}
         >
-          <AppIcon
-            name={{
-              android: favorite ? 'favorite' : 'favorite_border',
-              ios: favorite ? 'heart.fill' : 'heart',
-            }}
-            size={19}
-            tintColor={favorite ? palette.accent : theme.colors.textMuted}
-            type="monochrome"
-          />
+          {Platform.OS === 'web' ? (
+            <AppText
+              accessible={false}
+              style={[
+                styles.webFavoriteGlyph,
+                { color: favorite ? palette.accent : theme.colors.textMuted },
+              ]}
+            >
+              {favorite ? '♥' : '♡'}
+            </AppText>
+          ) : (
+            <AppIcon
+              name={{
+                android: favorite ? 'favorite' : 'favorite_border',
+                ios: favorite ? 'heart.fill' : 'heart',
+              }}
+              size={19}
+              tintColor={favorite ? palette.accent : theme.colors.textMuted}
+              type="monochrome"
+            />
+          )}
         </Pressable>
       </View>
     </Animated.View>
@@ -1325,6 +1353,12 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     width: 32,
+  },
+  webFavoriteGlyph: {
+    fontSize: 22,
+    lineHeight: 22,
+    textAlign: 'center',
+    width: 22,
   },
   loadingState: { alignItems: 'center', gap: 14, marginVertical: 80 },
   footer: { paddingTop: 32 },

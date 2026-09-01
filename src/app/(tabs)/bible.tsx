@@ -1,6 +1,6 @@
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +17,7 @@ import {
   getTranslations,
   getVerse,
 } from '@/features/bible/repository';
+import { useBibleSync } from '@/features/bible/BibleSyncProvider';
 import type {
   BibleBook,
   BibleTranslation,
@@ -45,31 +46,39 @@ export default function BibleScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'bible');
+  const { revision: bibleSyncRevision } = useBibleSync();
   const [dailyVerse, setDailyVerse] = useState<BibleVerse | null>(null);
   const [lastReading, setLastReading] = useState<ReadingLocation | null>(null);
   const [lastBook, setLastBook] = useState<BibleBook | null>(null);
   const [translations, setTranslations] = useState<BibleTranslation[]>([]);
 
+  const refreshBibleOverview = useCallback(() => {
+    let active = true;
+    void Promise.all([
+      getVerse(database, 'rvr1909', 'PSA', 46, 10),
+      getLastReading(database),
+      getTranslations(database),
+    ]).then(async ([verse, reading, availableTranslations]) => {
+      const book = await getBook(database, reading.bookId);
+      if (!active) return;
+      setDailyVerse(verse);
+      setLastReading(reading);
+      setLastBook(book);
+      setTranslations(availableTranslations);
+    });
+    return () => {
+      active = false;
+    };
+  }, [database]);
+
   useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      void Promise.all([
-        getVerse(database, 'rvr1909', 'PSA', 46, 10),
-        getLastReading(database),
-        getTranslations(database),
-      ]).then(async ([verse, reading, availableTranslations]) => {
-        const book = await getBook(database, reading.bookId);
-        if (!active) return;
-        setDailyVerse(verse);
-        setLastReading(reading);
-        setLastBook(book);
-        setTranslations(availableTranslations);
-      });
-      return () => {
-        active = false;
-      };
-    }, [database]),
+    useCallback(() => refreshBibleOverview(), [refreshBibleOverview]),
   );
+
+  useEffect(() => {
+    if (bibleSyncRevision === 0) return undefined;
+    return refreshBibleOverview();
+  }, [bibleSyncRevision, refreshBibleOverview]);
 
   const continueTitle = lastBook && lastReading
     ? `${lastBook.nameEs} ${lastReading.chapter}`
