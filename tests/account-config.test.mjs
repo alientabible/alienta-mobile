@@ -123,13 +123,14 @@ test('traduce errores de autenticación sin revelar detalles internos', () => {
 });
 
 test('las migraciones fuerzan RLS y no conceden lectura anónima', async () => {
-  const [profiles, consents, audit] = await Promise.all([
+  const [profiles, consents, bibleSync, audit] = await Promise.all([
     readFile(new URL('../supabase/migrations/0001_profiles.sql', import.meta.url), 'utf8'),
     readFile(new URL('../supabase/migrations/0002_consents.sql', import.meta.url), 'utf8'),
+    readFile(new URL('../supabase/migrations/0003_bible_sync.sql', import.meta.url), 'utf8'),
     readFile(new URL('../supabase/tests/rls.sql', import.meta.url), 'utf8'),
   ]);
 
-  for (const migration of [profiles, consents]) {
+  for (const migration of [profiles, consents, bibleSync]) {
     assert.match(migration, /enable row level security/i);
     assert.match(migration, /force row level security/i);
     assert.match(migration, /revoke all .* from anon, authenticated/i);
@@ -138,5 +139,10 @@ test('las migraciones fuerzan RLS y no conceden lectura anónima', async () => {
 
   assert.doesNotMatch(profiles, /emotion_text|reflection_text|prompt/i);
   assert.doesNotMatch(consents, /emotion_text|reflection_text|prompt/i);
+  assert.doesNotMatch(bibleSync, /verse_text|emotion_text|reflection_text|prompt/i);
+  assert.match(bibleSync, /favorited boolean not null default true/i);
+  assert.match(bibleSync, /purpose = 'bible_sync'/i);
+  assert.doesNotMatch(bibleSync, /grant .*delete.* to authenticated/i);
   assert.match(audit, /anon no debe tener SELECT/i);
+  assert.match(audit, /6 políticas bíblicas deben exigir consentimiento bible_sync/i);
 });

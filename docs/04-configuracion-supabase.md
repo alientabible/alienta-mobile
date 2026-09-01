@@ -16,9 +16,10 @@ Ejecuta en orden, desde el SQL Editor:
 
 1. `supabase/migrations/0001_profiles.sql`
 2. `supabase/migrations/0002_consents.sql`
-3. `supabase/tests/rls.sql`
+3. `supabase/migrations/0003_bible_sync.sql`
+4. `supabase/tests/rls.sql`
 
-El tercer archivo no cambia datos; aborta si detecta RLS incompleto, privilegios anónimos o columnas sensibles inesperadas.
+El cuarto archivo no cambia datos; aborta si detecta RLS incompleto, privilegios anónimos o columnas sensibles inesperadas.
 
 ## 3. Configurar Expo
 
@@ -86,7 +87,12 @@ se debe configurar SMTP propio.
 
 - `profiles` guarda únicamente identificador, nombre opcional, idioma y fechas.
 - `user_consents` guarda una decisión versionada por propósito.
-- `bible_sync` es solo una autorización preparada para el siguiente incremento; activarla todavía no sube lecturas.
+- `bible_reading_progress` guarda únicamente versión, libro, capítulo y versículo.
+- `bible_favorites` guarda la referencia y su estado; `favorited=false` conserva la retirada para resolver cambios entre dispositivos.
+- Ninguna tabla remota guarda el contenido textual de los versículos.
+- El tamaño de texto continúa siendo una preferencia local de cada dispositivo.
+- Las políticas RLS bloquean estas tablas si no existe un consentimiento `bible_sync` vigente.
+- `bible_sync` sigue siendo la autorización explícita: este incremento prepara el esquema y el siguiente conectará el cliente.
 - El texto libre de “cómo te sientes” no se guarda ni se sincroniza.
 - La clave pública es segura en el cliente únicamente junto con RLS; la clave `service_role` nunca debe llegar a la app.
 

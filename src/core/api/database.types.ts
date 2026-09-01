@@ -20,12 +20,61 @@ export type UserConsentRow = {
   user_id: string;
 };
 
+export type BibleReadingProgressRow = {
+  book_id: string;
+  chapter: number;
+  updated_at: string;
+  user_id: string;
+  verse: number | null;
+  version_id: 'rvr1909' | 'webp';
+};
+
+export type BibleFavoriteRow = {
+  favorited: boolean;
+  updated_at: string;
+  user_id: string;
+  verse_key: string;
+};
+
 export type Database = {
   public: {
     CompositeTypes: Record<string, never>;
     Enums: Record<string, never>;
     Functions: Record<string, never>;
     Tables: {
+      bible_favorites: {
+        Insert: {
+          favorited?: boolean;
+          updated_at?: string;
+          user_id: string;
+          verse_key: string;
+        };
+        Relationships: [];
+        Row: BibleFavoriteRow;
+        Update: {
+          favorited?: boolean;
+          updated_at?: string;
+        };
+      };
+      bible_reading_progress: {
+        Insert: {
+          book_id: string;
+          chapter: number;
+          updated_at?: string;
+          user_id: string;
+          verse?: number | null;
+          version_id: 'rvr1909' | 'webp';
+        };
+        Relationships: [];
+        Row: BibleReadingProgressRow;
+        Update: {
+          book_id?: string;
+          chapter?: number;
+          updated_at?: string;
+          verse?: number | null;
+          version_id?: 'rvr1909' | 'webp';
+        };
+      };
       profiles: {
         Insert: {
           created_at?: string;
