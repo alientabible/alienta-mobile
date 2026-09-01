@@ -843,10 +843,13 @@ export function BibleReader({
 
       {showInitialLoading ? (
         <Animated.View
-          pointerEvents="none"
           style={[
             styles.initialLoadingOverlay,
-            { backgroundColor: theme.colors.background, opacity: initialLoadingOpacity },
+            {
+              backgroundColor: theme.colors.background,
+              opacity: initialLoadingOpacity,
+              pointerEvents: 'none',
+            },
           ]}
         >
           <View style={styles.initialLoadingContent}>
@@ -1144,15 +1147,27 @@ const BibleVerseRow = memo(function BibleVerseRow({
           onPress={() => void onFavorite(item.key)}
           style={({ pressed }) => [styles.verseActionButton, pressed && styles.pressed]}
         >
-          <AppIcon
-            name={{
-              android: favorite ? 'favorite' : 'favorite_border',
-              ios: favorite ? 'heart.fill' : 'heart',
-            }}
-            size={19}
-            tintColor={favorite ? palette.accent : theme.colors.textMuted}
-            type="monochrome"
-          />
+          {Platform.OS === 'web' ? (
+            <AppText
+              accessible={false}
+              style={[
+                styles.webFavoriteGlyph,
+                { color: favorite ? palette.accent : theme.colors.textMuted },
+              ]}
+            >
+              {favorite ? '♥' : '♡'}
+            </AppText>
+          ) : (
+            <AppIcon
+              name={{
+                android: favorite ? 'favorite' : 'favorite_border',
+                ios: favorite ? 'heart.fill' : 'heart',
+              }}
+              size={19}
+              tintColor={favorite ? palette.accent : theme.colors.textMuted}
+              type="monochrome"
+            />
+          )}
         </Pressable>
       </View>
     </Animated.View>
@@ -1338,6 +1353,12 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     width: 32,
+  },
+  webFavoriteGlyph: {
+    fontSize: 22,
+    lineHeight: 22,
+    textAlign: 'center',
+    width: 22,
   },
   loadingState: { alignItems: 'center', gap: 14, marginVertical: 80 },
   footer: { paddingTop: 32 },
