@@ -226,10 +226,26 @@ Estado: **implementado y pendiente de validación visual en iPhone y web**.
 - utiliza una transición lateral de tarjetas y respeta la preferencia de reducir movimiento;
 - muestra únicamente idiomas cuyo contenido esté realmente disponible.
 
-La hora elegida queda preparada como preferencia local. La programación efectiva de avisos requiere
-incorporar y validar `expo-notifications`; no se presentará como activa antes de solicitar permiso y
-confirmar que el sistema operativo aceptó la programación. Google y Apple se incorporarán después
-de configurar sus proveedores y URLs de retorno en el proyecto Supabase de prueba.
+Google y Apple se incorporarán después de configurar sus proveedores y URLs de retorno en el
+proyecto Supabase de prueba.
+
+### Bloque E.2. Avisos locales del sistema
+
+- `src/features/reminders/model.ts`
+- `src/features/reminders/notifications.ts`
+- `src/features/reminders/ReadingReminderProvider.tsx`
+- `src/features/reminders/ReadingReminderCard.tsx`
+- `tests/reminders.test.mjs`
+
+Estado: **implementado y pendiente de validación física en iPhone y Android**.
+
+- solicita permiso solo cuando la persona activa el recordatorio durante la bienvenida o desde Perfil;
+- programa 3 días distribuidos, 5 días laborales o un aviso diario según el ritmo elegido;
+- no solicita tokens de notificación remota ni envía la hora, el ritmo o respuestas personales al servidor;
+- usa un texto general que no revela emociones, versículos favoritos ni actividad de la cuenta;
+- permite desactivar los avisos y abrir los ajustes del sistema cuando el permiso quedó bloqueado;
+- vuelve a conciliar la programación al abrir la app o regresar desde los ajustes;
+- informa en web que la función está disponible únicamente en iPhone y Android.
 
 ### Bloque F. IA
 

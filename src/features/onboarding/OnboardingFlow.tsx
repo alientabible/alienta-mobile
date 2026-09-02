@@ -17,6 +17,7 @@ import { AppIcon, type AppIconName } from '@/components/AppIcon';
 import { AppText } from '@/components/AppText';
 import { BrandLockup } from '@/components/BrandLockup';
 import { AccountCard } from '@/features/account/AccountCard';
+import { useReadingReminder } from '@/features/reminders/ReadingReminderProvider';
 import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
@@ -44,6 +45,7 @@ export function OnboardingFlow() {
   const theme = useAppTheme();
   const reduceMotion = useReducedMotionPreference();
   const { answers, complete } = useOnboarding();
+  const { activate: activateReminder } = useReadingReminder();
   const [draft, setDraft] = useState<OnboardingAnswers>(answers);
   const [stepIndex, setStepIndex] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
@@ -93,8 +95,16 @@ export function OnboardingFlow() {
     if (transitioning) return;
     setTransitioning(true);
 
-    if (reduceMotion) {
+    async function persistOnboarding() {
+      if (draft.reminder.enabled) {
+        await activateReminder(draft.reminder, draft.rhythm);
+      }
+
       await complete(draft);
+    }
+
+    if (reduceMotion) {
+      await persistOnboarding();
       return;
     }
 
@@ -104,7 +114,7 @@ export function OnboardingFlow() {
       toValue: 0,
       useNativeDriver: Platform.OS !== 'web',
     }).start(() => {
-      void complete(draft);
+      void persistOnboarding();
     });
   }
 

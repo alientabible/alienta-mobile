@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { ThemeQuickToggle } from '@/components/ThemeQuickToggle';
 import { AccountCard } from '@/features/account/AccountCard';
 import { useOnboarding } from '@/features/onboarding/OnboardingProvider';
+import { ReadingReminderCard } from '@/features/reminders/ReadingReminderCard';
 import { type ThemeMode, useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
@@ -70,6 +71,14 @@ export default function ProfileScreen() {
         {t('profile.accountDescription')}
       </AppText>
       <AccountCard />
+
+      <AppText accessibilityRole="header" style={styles.sectionTitle} variant="heading">
+        {t('profile.reminders.sectionTitle')}
+      </AppText>
+      <AppText color="textMuted" style={styles.sectionDescription} variant="caption">
+        {t('profile.reminders.sectionDescription')}
+      </AppText>
+      <ReadingReminderCard />
 
       <AppText accessibilityRole="header" style={styles.sectionTitle} variant="heading">
         {t('profile.appearanceTitle')}
