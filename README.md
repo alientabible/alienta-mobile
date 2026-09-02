@@ -23,7 +23,7 @@ La base móvil ya funciona con Expo SDK 57, React Native y TypeScript. Incluye c
 
 ## Siguiente hito
 
-Validar los avisos de lectura en un iPhone y un dispositivo Android; después comenzar el Bloque F con la capa de seguridad y recuperación bíblica previa a la IA.
+Comenzar el Bloque F con la capa de seguridad y recuperación bíblica previa a la IA. Los avisos de lectura ya fueron validados de extremo a extremo en un iPhone físico; la validación equivalente en Android continúa como puerta pendiente antes de la beta.
 
 ## Desarrollo local
 

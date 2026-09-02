@@ -237,7 +237,7 @@ proyecto Supabase de prueba.
 - `src/features/reminders/ReadingReminderCard.tsx`
 - `tests/reminders.test.mjs`
 
-Estado: **implementado y pendiente de validación física en iPhone y Android**.
+Estado: **implementado y validado de extremo a extremo en un iPhone físico; Android continúa pendiente antes de la beta**.
 
 - solicita permiso solo cuando la persona activa el recordatorio durante la bienvenida o desde Perfil;
 - programa 3 días distribuidos, 5 días laborales o un aviso diario según el ritmo elegido;
@@ -246,6 +246,13 @@ Estado: **implementado y pendiente de validación física en iPhone y Android**.
 - permite desactivar los avisos y abrir los ajustes del sistema cuando el permiso quedó bloqueado;
 - vuelve a conciliar la programación al abrir la app o regresar desde los ajustes;
 - informa en web que la función está disponible únicamente en iPhone y Android.
+
+Validación física de iPhone completada el 2 de septiembre de 2026:
+
+- iOS concedió el permiso solicitado desde la bienvenida;
+- Perfil mostró el ritmo diario y el estado `Activo en este dispositivo`;
+- el aviso local llegó a la hora elegida con texto general;
+- al tocarlo, Expo Go abrió Alienta correctamente.
 
 ### Bloque F. IA
 
