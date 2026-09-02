@@ -17,6 +17,7 @@ import {
   type OnboardingAnswers,
   ONBOARDING_STORAGE_KEY,
   parseStoredOnboarding,
+  type ReminderPreference,
 } from './model';
 
 type OnboardingContextValue = {
@@ -25,6 +26,7 @@ type OnboardingContextValue = {
   complete: (answers: OnboardingAnswers) => Promise<void>;
   ready: boolean;
   reset: () => Promise<void>;
+  updateReminder: (reminder: ReminderPreference) => Promise<void>;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -73,9 +75,26 @@ export function OnboardingProvider({ children }: PropsWithChildren) {
     await AsyncStorage.removeItem(ONBOARDING_STORAGE_KEY).catch(() => undefined);
   }, []);
 
+  const updateReminder = useCallback(
+    async (reminder: ReminderPreference) => {
+      const nextAnswers = { ...answers, reminder };
+      setAnswers(nextAnswers);
+
+      if (!completed) return;
+      const current = parseStoredOnboarding(
+        await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY).catch(() => null),
+      );
+      await AsyncStorage.setItem(
+        ONBOARDING_STORAGE_KEY,
+        JSON.stringify(createCompletedOnboarding(nextAnswers, current?.completedAt)),
+      ).catch(() => undefined);
+    },
+    [answers, completed],
+  );
+
   const value = useMemo<OnboardingContextValue>(
-    () => ({ answers, completed, complete, ready, reset }),
-    [answers, complete, completed, ready, reset],
+    () => ({ answers, completed, complete, ready, reset, updateReminder }),
+    [answers, complete, completed, ready, reset, updateReminder],
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;

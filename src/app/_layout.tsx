@@ -23,6 +23,7 @@ import {
   OnboardingProvider,
   useOnboarding,
 } from '@/features/onboarding/OnboardingProvider';
+import { ReadingReminderProvider } from '@/features/reminders/ReadingReminderProvider';
 import { ThemeProvider, useAppTheme } from '@/theme/ThemeProvider';
 
 void SplashScreen.preventAutoHideAsync();
@@ -113,7 +114,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <AuthProvider>
           <OnboardingProvider>
-            <AppGate fontsReady={fontsReady} />
+            <ReadingReminderProvider>
+              <AppGate fontsReady={fontsReady} />
+            </ReadingReminderProvider>
           </OnboardingProvider>
         </AuthProvider>
       </ThemeProvider>
