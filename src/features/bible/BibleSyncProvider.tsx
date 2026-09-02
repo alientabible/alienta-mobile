@@ -126,7 +126,11 @@ export function BibleSyncProvider({ children }: PropsWithChildren) {
 }
 
 export function useBibleSync() {
-  const context = useContext(BibleSyncContext);
+  const context = useOptionalBibleSync();
   if (!context) throw new Error('useBibleSync must be used inside BibleSyncProvider');
   return context;
+}
+
+export function useOptionalBibleSync() {
+  return useContext(BibleSyncContext);
 }

@@ -122,6 +122,18 @@ test('traduce errores de autenticación sin revelar detalles internos', () => {
   );
 });
 
+test('la cuenta del onboarding no exige montar la base bíblica', async () => {
+  const [accountCard, syncProvider, rootLayout] = await Promise.all([
+    readFile(new URL('../src/features/account/AccountCard.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/features/bible/BibleSyncProvider.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/_layout.tsx', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(accountCard, /useOptionalBibleSync\(\)\?\.status \?\? 'disabled'/);
+  assert.match(syncProvider, /export function useOptionalBibleSync\(\)/);
+  assert.match(rootLayout, /completed \? <DatabaseBackedApp \/> : <OnboardingFlow \/>/);
+});
+
 test('las migraciones fuerzan RLS y no conceden lectura anónima', async () => {
   const [profiles, consents, bibleSync, audit] = await Promise.all([
     readFile(new URL('../supabase/migrations/0001_profiles.sql', import.meta.url), 'utf8'),

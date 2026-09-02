@@ -18,7 +18,7 @@ import {
   validateAccountForm,
 } from '@/core/auth/authValidation';
 import { useAuth } from '@/core/auth/AuthProvider';
-import { useBibleSync } from '@/features/bible/BibleSyncProvider';
+import { useOptionalBibleSync } from '@/features/bible/BibleSyncProvider';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette } from '@/theme/tokens';
@@ -29,7 +29,7 @@ export function AccountCard() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const palette = getSectionPalette(theme, 'profile');
-  const { status: bibleSyncStatus } = useBibleSync();
+  const bibleSyncStatus = useOptionalBibleSync()?.status ?? 'disabled';
   const {
     bibleSyncConsent,
     configurationStatus,
