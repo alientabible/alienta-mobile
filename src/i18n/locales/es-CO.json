@@ -169,9 +169,9 @@
     "urgent": {
       "eyebrow": "Tu seguridad importa",
       "title": "No tienes que atravesar esto a solas.",
-      "description": "Si estás en peligro inmediato o podrías hacerte daño, busca ayuda humana ahora. Alienta no continuará con una reflexión automática.",
+      "description": "Si tú u otra persona están en peligro inmediato, o este momento requiere apoyo humano, busca ayuda ahora. Alienta no continuará con una reflexión automática.",
       "actionTitle": "Da el siguiente paso ahora",
-      "actionDescription": "Llama al 123 si existe peligro inmediato. También puedes intentar la Línea 106 donde esté disponible y permanecer con una persona de confianza.",
+      "actionDescription": "Llama al 123 si existe peligro inmediato. También puedes intentar la Línea 106 donde esté disponible y permanecer con una persona de confianza que conozca lo que está pasando.",
       "call123": "Llamar al 123 — Emergencias",
       "call106": "Llamar al 106 — Apoyo emocional",
       "directory": "Ver directorio oficial de ayuda",

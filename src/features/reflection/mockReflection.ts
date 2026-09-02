@@ -1,15 +1,6 @@
 import type { CheckInInput } from '../check-in/types';
 import type { MockReflection, ReflectionId, StandardReflectionId } from './types';
-
-const urgentPatterns = [
-  /\b(quiero|voy\s+a|planeo|pienso)\s+(matarme|morir|suicidarme)\b/,
-  /\bme\s+quiero\s+(matar|morir)\b/,
-  /\b(quitarme|quitar)\s+la\s+vida\b/,
-  /\bacabar\s+con\s+mi\s+vida\b/,
-  /\b(no\s+quiero|no\s+deseo)\s+vivir\b/,
-  /\bhacerme\s+dano\b/,
-  /\bsuicid/,
-];
+import { moderateReflectionInput } from '../../../supabase/functions/generate-reflection/safety.ts';
 
 const emotionPatterns: [StandardReflectionId, RegExp][] = [
   ['grateful', /\b(agradecid[oa]s?|agradecimiento|gratitud|gracias|bendecid[oa]s?)\b/],
@@ -95,7 +86,7 @@ function normalizeText(value: string) {
 export function resolveMockReflectionId({ emotion, note }: CheckInInput): ReflectionId {
   const normalizedNote = normalizeText(note);
 
-  if (urgentPatterns.some((pattern) => pattern.test(normalizedNote))) {
+  if (!moderateReflectionInput(note).canGenerateReflection) {
     return 'urgent';
   }
 

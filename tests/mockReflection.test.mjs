@@ -13,6 +13,13 @@ test('prioriza una señal urgente sobre la emoción seleccionada', () => {
   );
 });
 
+test('interrumpe también una reflexión que requiere apoyo humano', () => {
+  assert.equal(
+    resolveMockReflectionId({ emotion: 'hopeful', note: 'Mi pareja me amenaza.' }),
+    'urgent',
+  );
+});
+
 test('clasifica el texto localmente sin conservar la frase original', () => {
   const result = resolveMockReflectionId({
     emotion: null,

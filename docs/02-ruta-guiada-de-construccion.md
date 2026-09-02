@@ -263,6 +263,21 @@ Validación física de iPhone completada el 2 de septiembre de 2026:
 - `src/features/reflection/api.ts`
 - `tests/evals/reflections.es-CO.json`
 
+Estado F.1: **base segura implementada sin proveedor de IA ni envío de datos**.
+
+- exige consentimiento explícito para procesar una respuesta con IA y prohíbe guardar el texto original;
+- clasifica localmente temas estructurados sin conservar la frase de entrada;
+- interrumpe la generación ante señales urgentes o que requieren apoyo humano;
+- centraliza los recursos verificados de Colombia y usa un fallback sin números inventados para otros países;
+- valida un contrato JSON acotado y rechaza referencias fuera del conjunto recuperado;
+- mantiene un mapa de pasajes candidatos verificados contra la Biblia empaquetada;
+- bloquea esos candidatos hasta recibir aprobación pastoral/editorial explícita;
+- incorpora evaluaciones sintéticas para rutas estándar, de apoyo y urgentes.
+
+Antes de conectar un proveedor todavía faltan la revisión pastoral/editorial de candidatos, la
+moderación remota, el límite por usuario o dispositivo, el presupuesto, los reintentos y la
+política de errores de la función de servidor.
+
 Puertas de calidad:
 
 - ninguna cita inventada;
