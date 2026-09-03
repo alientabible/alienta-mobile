@@ -21,13 +21,19 @@ import {
   getMockReflection,
   isReflectionId,
 } from '@/features/reflection/mockReflection';
+import {
+  getSupportResource,
+  getSupportResourcePlan,
+} from '@/features/reflection/supportResources';
 import type { StandardReflectionId } from '@/features/reflection/types';
 import { useAppTheme } from '@/theme/ThemeProvider';
 import { getPremiumDepth } from '@/theme/effects';
 import { fonts, getSectionPalette, type AppTheme } from '@/theme/tokens';
 
-const mentalHealthDirectoryUrl =
-  'https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/VS/PP/ET/directorio-salud-mental-prevencion-suicidio-minsalud.pdf';
+const colombiaSupportPlan = getSupportResourcePlan('CO');
+const emergencyResource = getSupportResource(colombiaSupportPlan, 'emergency');
+const emotionalSupportResource = getSupportResource(colombiaSupportPlan, 'emotional-support');
+const officialDirectoryResource = getSupportResource(colombiaSupportPlan, 'official-directory');
 
 type FeedbackValue = 'helpful' | 'notHelpful';
 
@@ -134,18 +140,22 @@ export default function ReflectionScreen() {
                   <AppButton
                     icon={{ android: 'call', ios: 'phone.fill' }}
                     label={t('reflection.urgent.call123')}
-                    onPress={() => void openUrl('tel:123')}
+                    onPress={() => void openUrl(emergencyResource?.href ?? 'tel:123')}
                   />
                   <AppButton
                     icon={{ android: 'support_agent', ios: 'person.wave.2' }}
                     label={t('reflection.urgent.call106')}
-                    onPress={() => void openUrl('tel:106')}
+                    onPress={() => void openUrl(emotionalSupportResource?.href ?? 'tel:106')}
                     variant="secondary"
                   />
                   <AppButton
                     icon={{ android: 'open_in_new', ios: 'arrow.up.right.square' }}
                     label={t('reflection.urgent.directory')}
-                    onPress={() => void openUrl(mentalHealthDirectoryUrl)}
+                    onPress={() => {
+                      if (officialDirectoryResource?.href) {
+                        void openUrl(officialDirectoryResource.href);
+                      }
+                    }}
                     variant="secondary"
                   />
                 </View>

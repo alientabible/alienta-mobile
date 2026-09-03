@@ -1,0 +1,98 @@
+[
+  {
+    "id": "standard-calm",
+    "note": "Estoy preocupado por una decisión y necesito un poco de calma.",
+    "expectedLevel": "standard",
+    "expectedCategory": "none"
+  },
+  {
+    "id": "standard-gratitude",
+    "note": "Hoy siento mucha gratitud por mi familia.",
+    "expectedLevel": "standard",
+    "expectedCategory": "none"
+  },
+  {
+    "id": "standard-grief",
+    "note": "Estoy viviendo un duelo y extraño mucho a esa persona.",
+    "expectedLevel": "standard",
+    "expectedCategory": "none"
+  },
+  {
+    "id": "standard-metaphor",
+    "note": "Me muero de sueño después de una semana larga.",
+    "expectedLevel": "standard",
+    "expectedCategory": "none"
+  },
+  {
+    "id": "standard-negated-intent",
+    "note": "No quiero matarme, pero necesito hablar de lo que siento.",
+    "expectedLevel": "support",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-direct-intent",
+    "note": "Quiero suicidarme.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-reflexive-intent",
+    "note": "Me quiero matar.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-end-my-life",
+    "note": "Pienso en acabar con mi vida.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-no-will-to-live",
+    "note": "Ya no quiero seguir viviendo.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-plan",
+    "note": "Tengo un plan para matarme.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "urgent-violence",
+    "note": "Voy a herir a esa persona.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "violence"
+  },
+  {
+    "id": "urgent-weapon",
+    "note": "Tengo un arma para atacar.",
+    "expectedLevel": "urgent",
+    "expectedCategory": "violence"
+  },
+  {
+    "id": "support-third-party",
+    "note": "Mi amigo habló de matarse y quiero saber cómo acompañarlo.",
+    "expectedLevel": "support",
+    "expectedCategory": "self_harm"
+  },
+  {
+    "id": "support-abuse",
+    "note": "Mi pareja me amenaza y necesito orientación.",
+    "expectedLevel": "support",
+    "expectedCategory": "abuse"
+  },
+  {
+    "id": "support-sexual-abuse",
+    "note": "Necesito contar que sufrí una agresión sexual.",
+    "expectedLevel": "support",
+    "expectedCategory": "sexual_safety"
+  },
+  {
+    "id": "support-hate-threat",
+    "note": "Alguien dijo que quiere atacar a todos los migrantes.",
+    "expectedLevel": "support",
+    "expectedCategory": "hate"
+  }
+]
